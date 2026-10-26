@@ -1,6 +1,6 @@
 import{createFileRoute}from'@tanstack/react-router'
 import{Fragment,useCallback,useEffect,useMemo,useState}from'react'
-import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,X}from'lucide-react'
+import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,CreditCard,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,X}from'lucide-react'
 import{categories}from'@/data/products'
 import{parseEuro,placements}from'@/data/imported-products'
 
@@ -15,7 +15,7 @@ type Sales={revenue:string;count:number}
 type Order={id:number;orderNumber:string;companyName:string|null;email:string;total:string;status:string;firstName:string|null;lastName:string|null;phone:string|null;kvk:string|null;vatNumber:string|null;reference:string|null;street:string|null;houseNumber:string|null;postalCode:string|null;city:string|null;country:string|null;subtotal:string|null;discount:string|null;vatAmount:string|null;paymentMethod:string;businessOrder:boolean;notes:string|null;bunqPaymentUrl:string;bunqTabId:number|null;createdAt:string|null}
 type Invoice={id:number;orderId:number;number:string|null;status:string;amount:string;pdfUrl:string|null;dueDate:string|null;error:string|null;createdAt:string|null;orderNumber:string|null;companyName:string|null;email:string|null}
 type Integration={provider:string;baseUrl:string;invoicePath:string;keyLast4:string|null;keyUpdatedAt:string|null;senderCompany:string|null;senderVat:string|null;senderIban:string|null;senderAddress:string|null;paymentTermDays:number;autoCreate:boolean;active:boolean;lastCheckAt:string|null;lastCheckOk:boolean|null;lastCheckMessage:string|null}
-type Bunq={configured:boolean;source:'omgeving'|'beheer'|'geen';keyLast4:string|null;connected:boolean;iban:string;lastError:string}
+type Bunq={configured:boolean;source:'omgeving'|'beheer'|'geen';keyLast4:string|null;connected:boolean;iban:string;expectedIban:string;lastError:string}
 type Settings={siteName:string;tagline:string|null;supportEmail:string|null;supportPhone:string|null;logoKey:string|null}
 type Data={
   generatedAt:string
@@ -43,7 +43,8 @@ const views=[
   {key:'facturen',label:'Facturen',icon:FileText},
   {key:'producten',label:'Producten',icon:Tag},
   {key:'catalogus',label:'Assortiment',icon:Package},
-  {key:'koppeling',label:'Koppelingen FINOM en bunq',icon:Link2},
+  {key:'bunq',label:'Betalingen bunq',icon:CreditCard},
+  {key:'koppeling',label:'Koppeling FINOM',icon:Link2},
   {key:'merk',label:'Merk en instellingen',icon:Settings2},
 ]as const
 type ViewKey=typeof views[number]['key']
@@ -191,6 +192,7 @@ function AdminPage(){
       {view==='facturen'&&<Facturen data={data} busy={busy} post={post}/>}
       {view==='producten'&&<Producten/>}
       {view==='catalogus'&&<Catalogus data={data}/>}
+      {view==='bunq'&&<BunqKoppeling bunq={data.bunq} busy={busy} post={post}/>}
       {view==='koppeling'&&<Koppeling data={data} busy={busy} post={post}/>}
       {view==='merk'&&<Merk data={data} busy={busy} post={post}/>}
     </main>
@@ -478,8 +480,6 @@ function Koppeling({data,busy,post}:{data:Data;busy:boolean;post:Post}){
   const set=(field:keyof typeof form)=>(event:React.ChangeEvent<HTMLInputElement>)=>setForm(current=>({...current,[field]:event.target.type==='checkbox'?event.target.checked:event.target.value}))
 
   return <>
-    <BunqKoppeling bunq={data.bunq} busy={busy} post={post}/>
-
     <section className="db-section">
       <h2>Bankkoppeling FINOM</h2>
       <p className="db-lead">Met je FINOM-API-sleutel maken we bij elke bestelling automatisch een factuur aan, gericht aan de gegevens die de klant bij het afrekenen invult. De sleutel bewaren we versleuteld buiten de code en is na opslaan niet meer te lezen.</p>
@@ -542,24 +542,25 @@ function BunqKoppeling({bunq,busy,post}:{bunq:Bunq;busy:boolean;post:Post}){
   const[apiKey,setApiKey]=useState('')
   return <section className="db-section">
     <h2>Betalingen via bunq</h2>
-    <p className="db-lead">Elke bestelling krijgt automatisch een bunq.me-betaallink met het totaalbedrag en het ordernummer als beschrijving. De klant gaat na het bestellen meteen naar die link en kiest daar iDEAL, Bancontact of creditcard.</p>
+    <p className="db-lead">Elke bestelling krijgt automatisch een bunq.me-betaallink met het totaalbedrag en het ordernummer als beschrijving. Na het bestellen sturen we de klant direct door naar die link, met iDEAL al gekozen; elke vijf minuten kijken we bij bunq of de betaling binnen is en zetten we de order op betaald.</p>
     <div className="db-grid cols-4">
       <Tile label="API-sleutel" value={bunq.source==='omgeving'?'via de omgeving':bunq.source==='beheer'?(bunq.keyLast4?`•••• ${bunq.keyLast4}`:'hier ingesteld'):'niet ingesteld'} hint={bunq.source==='omgeving'?'BUNQ_API_KEY heeft voorrang':'voeg je sleutel hieronder toe'}/>
-      <Tile label="Rekening" value={bunq.connected?(bunq.iban||'gekoppeld'):'nog niet gekoppeld'} hint={bunq.connected?'hier komen de betalingen binnen':'wordt bij de eerste bestelling gekoppeld'}/>
+      <Tile label="Rekening" value={bunq.connected?(bunq.iban||'gekoppeld'):'nog niet gekoppeld'} hint={bunq.connected?'hier komen de betalingen binnen':bunq.expectedIban?`zoekt rekening met IBAN ${bunq.expectedIban}…`:'test de verbinding om te koppelen'}/>
       <Tile label="Betaallinks" value={bunq.configured?'Aan':'Uit'} hint={bunq.configured?'elke order krijgt een bunq.me-link':'klanten betalen nu op factuur'}/>
       <Tile label="Laatste fout" value={bunq.lastError?'zie hieronder':'geen'}/>
     </div>
     {bunq.lastError&&<p className="db-message is-bad"><AlertTriangle/> {bunq.lastError}</p>}
     <div className="db-panel">
       <h3>API-sleutel van bunq</h3>
-      <p className="db-note">Te vinden in de bunq-app onder Instellingen, Ontwikkelaars, API-sleutels. Na opslaan is de sleutel niet meer te bekijken.</p>
+      <p className="db-note">Te vinden in de bunq-app onder Instellingen, Ontwikkelaars, API-sleutels. Na opslaan koppelen we meteen je rekening; de sleutel is daarna niet meer te bekijken. {bunq.expectedIban?`De links komen op de rekening met IBAN ${bunq.expectedIban}… (BUNQ_ACCOUNT_IBAN).`:'Een andere rekening dan de eerste betaalrekening kies je met de omgevingsvariabele BUNQ_ACCOUNT_IBAN.'}</p>
       <form className="db-form cols-2" onSubmit={event=>{event.preventDefault();post('/api/admin-bunq',{action:'save',apiKey}).then(()=>setApiKey(''))}}>
         <label className="db-field full">{bunq.configured?'Nieuwe API-sleutel':'API-sleutel van bunq'}
           <input type="password" value={apiKey} onChange={event=>setApiKey(event.target.value)} placeholder={bunq.keyLast4?`bewaard, eindigt op ${bunq.keyLast4}`:'plak hier je sleutel'} autoComplete="off"/>
           {bunq.source==='omgeving'&&<small>De sleutel uit de omgevingsvariabele BUNQ_API_KEY heeft voorrang op wat je hier invult.</small>}
         </label>
         <div className="db-actions">
-          <button className="db-button" disabled={busy||apiKey.trim().length===0}>Sleutel opslaan</button>
+          <button className="db-button" disabled={busy||apiKey.trim().length===0}>Sleutel opslaan en koppelen</button>
+          {bunq.configured&&<button type="button" className="db-button ghost" disabled={busy} onClick={()=>post('/api/admin-bunq',{action:'test'})}>Verbinding testen</button>}
           {bunq.source==='beheer'&&<button type="button" className="db-button danger" disabled={busy} onClick={()=>post('/api/admin-bunq',{action:'remove-key'})}>Sleutel verwijderen</button>}
         </div>
       </form>

@@ -29,6 +29,17 @@ const USER_AGENT = 'VoltVoorraad-webshop/1.0'
 const DEVICE_DESCRIPTION = 'VoltVoorraad webshop'
 /** Zonder opgave van bunq gaan we uit van een uur sessieduur. */
 const FALLBACK_SESSION_SECONDS = 3600
+/**
+ * Bij één API-sleutel horen vaak meerdere rekeningen. Met BUNQ_ACCOUNT_IBAN
+ * (een volledig IBAN of alleen het begin ervan) kies je de rekening waarop de
+ * betaallinks komen; zonder die variabele nemen we de eerste betaalrekening.
+ */
+const configuredIban = () => normalizeIban(process.env.BUNQ_ACCOUNT_IBAN ?? '')
+
+/** Spaties en kleine letters weg, zodat 'nl39 bunq …' net zo goed matcht. */
+function normalizeIban(value: string) {
+  return value.replace(/\s+/g, '').toUpperCase()
+}
 
 type ContextRow = typeof bunqContext.$inferSelect
 type ContextPatch = Partial<typeof bunqContext.$inferInsert>
@@ -76,6 +87,16 @@ async function apiKeyFromAdmin() {
   return (stored ?? '').trim()
 }
 
+/** Een nieuwe lokale identiteit voor een volledig verse bunq-installatie. */
+function generateClientKeyPair() {
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: 'spki', format: 'pem' },
+    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
+  })
+  return { privateKeyPem: privateKey, publicKeyPem: publicKey }
+}
+
 async function readContext(): Promise<ContextRow> {
   const [existing] = await db
     .select()
@@ -84,14 +105,9 @@ async function readContext(): Promise<ContextRow> {
   if (existing) return existing
 
   // Eerste keer: een eigen sleutelpaar waarmee we onze verzoeken ondertekenen.
-  const { privateKey, publicKey } = generateKeyPairSync('rsa', {
-    modulusLength: 2048,
-    publicKeyEncoding: { type: 'spki', format: 'pem' },
-    privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-  })
   await db
     .insert(bunqContext)
-    .values({ id: 1, privateKeyPem: privateKey, publicKeyPem: publicKey })
+    .values({ id: 1, ...generateClientKeyPair() })
     .onConflictDoNothing()
 
   const [created] = await db
@@ -121,6 +137,15 @@ const FORGET_HANDSHAKE: ContextPatch = {
   bunqUserId: null,
   monetaryAccountId: null,
   monetaryAccountIban: '',
+}
+
+/**
+ * Een API-sleutel hoort bij een eigen bunq-installatie. Daarom vervangen we
+ * bij sleutelrotatie ook het RSA-sleutelpaar en niet alleen de tijdelijke
+ * tokens; zo kan geen onderdeel van de oude koppeling blijven doorwerken.
+ */
+async function resetConnection(row: ContextRow, patch: ContextPatch = {}) {
+  await save(row, { ...FORGET_HANDSHAKE, ...generateClientKeyPair(), ...patch })
 }
 
 /* ------------------------------------------------------------------ */
@@ -317,22 +342,51 @@ async function findMonetaryAccount(row: ContextRow) {
       String(entry.value.status ?? 'ACTIVE').toUpperCase() === 'ACTIVE' &&
       String(entry.value.currency ?? 'EUR').toUpperCase() === 'EUR',
   )
-  const chosen =
-    usable.find((entry) => entry.type === 'MonetaryAccountBank') ??
-    usable.find((entry) => entry.type === 'MonetaryAccountJoint') ??
-    usable[0] ??
-    accounts[0]
-  if (!chosen) throw new Error('Er is geen bunq-rekening gevonden.')
 
-  const account = chosen.value
-  const iban = Array.isArray(account.alias)
-    ? (account.alias.find((a: BunqEntry) => a?.type === 'IBAN')?.value ?? '')
-    : ''
+  // Is er een IBAN opgegeven, dan innen we liever niets dan op de verkeerde
+  // rekening: de beheerder ziet de reden bij de bunq-koppeling.
+  const wanted = configuredIban()
+  const matches = wanted
+    ? usable.filter((entry) =>
+        ibansOf(entry.value).some((iban) => iban.startsWith(wanted)),
+      )
+    : usable
+  const chosen =
+    matches.find((entry) => entry.type === 'MonetaryAccountBank') ??
+    matches.find((entry) => entry.type === 'MonetaryAccountJoint') ??
+    matches[0] ??
+    (wanted ? undefined : accounts[0])
+  if (!chosen) {
+    if (!wanted) throw new Error('Er is geen bunq-rekening gevonden.')
+    const available = usable.map((entry) => describeAccount(entry.value)).join(', ')
+    throw new Error(
+      `Geen bunq-rekening gevonden met IBAN ${wanted}…. Beschikbaar: ${available || 'geen actieve euro-rekening'}.`,
+    )
+  }
+
+  const ibans = ibansOf(chosen.value)
+  // Hangen er meer IBAN's aan één rekening, dan tonen we het gevraagde.
+  const iban = ibans.find((value) => value.startsWith(wanted)) ?? ibans[0] ?? ''
 
   await save(row, {
-    monetaryAccountId: Number(account.id),
-    monetaryAccountIban: String(iban),
+    monetaryAccountId: Number(chosen.value.id),
+    monetaryAccountIban: iban,
   })
+}
+
+/** Alle IBAN's van een rekening; bunq hangt er soms meer dan één aan. */
+function ibansOf(account: BunqEntry): Array<string> {
+  if (!Array.isArray(account.alias)) return []
+  return account.alias
+    .filter((alias: BunqEntry) => alias?.type === 'IBAN' && alias.value)
+    .map((alias: BunqEntry) => normalizeIban(String(alias.value)))
+}
+
+/** Naam en begin van het IBAN, zodat de beheerder de rekening herkent. */
+function describeAccount(account: BunqEntry) {
+  const name = String(account.description ?? '').trim() || 'naamloos'
+  const iban = ibansOf(account)[0]
+  return iban ? `${name} (${iban.slice(0, 8)}…)` : `${name} (zonder IBAN)`
 }
 
 /** Zorgt dat installatie, apparaat, sessie en rekening klaarstaan. */
@@ -344,7 +398,7 @@ async function ensureSession(): Promise<ContextRow> {
   // Een andere sleutel betekent een andere koppeling: opnieuw beginnen.
   const hash = sha256(apiKey)
   if (row.apiKeyHash !== hash) {
-    await save(row, { ...FORGET_HANDSHAKE, apiKeyHash: hash })
+    await resetConnection(row, { apiKeyHash: hash, lastError: '' })
   }
 
   if (!row.installationToken) await createInstallation(row)
@@ -353,7 +407,12 @@ async function ensureSession(): Promise<ContextRow> {
   const expired =
     !row.sessionExpiresAt || row.sessionExpiresAt.getTime() < Date.now()
   if (!row.sessionToken || expired) await createSession(row, apiKey)
-  if (!row.monetaryAccountId) await findMonetaryAccount(row)
+  // Een eerder gekozen rekening houden we alleen als hij nog bij het gewenste
+  // IBAN hoort, zodat een gewijzigde BUNQ_ACCOUNT_IBAN vanzelf meeverhuist.
+  const accountMatches =
+    Boolean(row.monetaryAccountId) &&
+    normalizeIban(row.monetaryAccountIban).startsWith(configuredIban())
+  if (!accountMatches) await findMonetaryAccount(row)
 
   return row
 }
@@ -430,9 +489,69 @@ export async function createBunqPaymentLink(input: {
 
     // Sessie of installatie afgekeurd: alles vergeten en één keer opnieuw.
     const row = await readContext()
-    await save(row, FORGET_HANDSHAKE)
+    await resetConnection(row)
     const fresh = await ensureSession()
-    return await requestPaymentLink(fresh, payload)
+    const link = await requestPaymentLink(fresh, payload)
+    if (fresh.lastError) await save(fresh, { lastError: '' })
+    return link
+  }
+}
+
+/**
+ * Dezelfde bunq.me-link, maar met iDEAL al gekozen. De betaalpagina van bunq
+ * leest `paymentMethod` uit de URL, kiest die methode en dient hem meteen in,
+ * zodat de klant zonder tussenstap bij de iDEAL-pagina uitkomt. Staat iDEAL
+ * voor deze link niet aan, dan toont bunq.me gewoon de keuze van methodes.
+ */
+export function idealPaymentUrl(shareUrl: string) {
+  try {
+    const url = new URL(shareUrl)
+    url.searchParams.set('paymentMethod', 'ideal')
+    return url.toString()
+  } catch {
+    return shareUrl
+  }
+}
+
+const recoverable = (error: unknown) =>
+  error instanceof BunqApiError &&
+  (error.status === 401 || error.status === 403 || error.status === 419)
+
+async function paymentCompleted(row: ContextRow, tabId: number) {
+  const path = `/user/${row.bunqUserId}/monetary-account/${row.monetaryAccountId}/bunqme-tab/${tabId}`
+  const detail = await call({ path, token: row.sessionToken })
+  const tab = pick<{ result_inquiries?: unknown[] }>(detail, 'BunqMeTab')
+
+  // bunq vult result_inquiries uitsluitend met geslaagde betalingen.
+  return Array.isArray(tab?.result_inquiries) && tab.result_inquiries.length > 0
+}
+
+/** Controleert de betaling rechtstreeks bij bunq, nooit via de browser. */
+export async function isBunqPaymentCompleted(tabId: number) {
+  try {
+    return await paymentCompleted(await ensureSession(), tabId)
+  } catch (error) {
+    if (!recoverable(error)) throw error
+    const row = await readContext()
+    await resetConnection(row)
+    return paymentCompleted(await ensureSession(), tabId)
+  }
+}
+
+/**
+ * Zet de koppeling meteen op met de huidige sleutel, zodat een fout zichtbaar
+ * is vóórdat een klant afrekent. Een mislukte poging komt bij de laatste fout.
+ */
+export async function testBunqConnection() {
+  try {
+    const row = await ensureSession()
+    if (row.lastError) await save(row, { lastError: '' })
+    return { ok: true as const, iban: row.monetaryAccountIban }
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : 'Onbekende fout bij bunq.'
+    await recordBunqError(message)
+    return { ok: false as const, error: message }
   }
 }
 
@@ -458,6 +577,8 @@ export interface BunqStatus {
   keyLast4: string | null
   connected: boolean
   iban: string
+  /** Het IBAN (of begin ervan) uit BUNQ_ACCOUNT_IBAN; leeg = eerste betaalrekening. */
+  expectedIban: string
   lastError: string
 }
 
@@ -470,8 +591,7 @@ export async function saveBunqApiKey(apiKey: string) {
   const trimmed = apiKey.trim()
   if (trimmed) await store().set(KEY, trimmed)
   else await store().delete(KEY)
-  await save(row, {
-    ...FORGET_HANDSHAKE,
+  await resetConnection(row, {
     apiKeyHash: trimmed ? sha256(trimmed) : '',
     keyLast4: trimmed ? trimmed.slice(-4) : null,
     lastError: '',
@@ -491,8 +611,11 @@ export async function bunqStatus(): Promise<BunqStatus> {
     configured: fromEnv || fromAdmin,
     source: fromEnv ? 'omgeving' : fromAdmin ? 'beheer' : 'geen',
     keyLast4: fromEnv ? null : (row?.keyLast4 ?? null),
-    connected: Boolean(row?.monetaryAccountId),
+    connected:
+      Boolean(row?.monetaryAccountId) &&
+      normalizeIban(row?.monetaryAccountIban ?? '').startsWith(configuredIban()),
     iban: row?.monetaryAccountIban ?? '',
+    expectedIban: configuredIban(),
     lastError: row?.lastError ?? '',
   }
 }
