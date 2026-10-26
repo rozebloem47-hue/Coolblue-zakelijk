@@ -1,6 +1,6 @@
 import{createFileRoute}from'@tanstack/react-router'
 import{Fragment,useCallback,useEffect,useMemo,useState}from'react'
-import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,CreditCard,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,X}from'lucide-react'
+import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,CreditCard,Download,ExternalLink,Eye,Globe,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,X}from'lucide-react'
 import{categories}from'@/data/products'
 import{parseEuro,placements}from'@/data/imported-products'
 
@@ -16,6 +16,7 @@ type Order={id:number;orderNumber:string;companyName:string|null;email:string;to
 type Invoice={id:number;orderId:number;number:string|null;status:string;amount:string;pdfUrl:string|null;dueDate:string|null;error:string|null;createdAt:string|null;orderNumber:string|null;companyName:string|null;email:string|null}
 type Integration={provider:string;baseUrl:string;invoicePath:string;keyLast4:string|null;keyUpdatedAt:string|null;senderCompany:string|null;senderVat:string|null;senderIban:string|null;senderAddress:string|null;paymentTermDays:number;autoCreate:boolean;active:boolean;lastCheckAt:string|null;lastCheckOk:boolean|null;lastCheckMessage:string|null}
 type Bunq={configured:boolean;source:'omgeving'|'beheer'|'geen';keyLast4:string|null;connected:boolean;iban:string;expectedIban:string;lastError:string}
+type Browserless={source:'omgeving'|'beheer'|'geen';keyLast4:string|null;keyUpdatedAt:string|null;baseUrl:string;active:boolean;lastCheckAt:string|null;lastCheckOk:boolean|null;lastCheckMessage:string|null;regions:{url:string;label:string}[]}
 type Settings={siteName:string;tagline:string|null;supportEmail:string|null;supportPhone:string|null;logoKey:string|null}
 type Data={
   generatedAt:string
@@ -34,6 +35,7 @@ type Data={
   settings:Settings
   integration:Integration
   bunq:Bunq
+  browserless:Browserless
 }
 
 const views=[
@@ -45,6 +47,7 @@ const views=[
   {key:'catalogus',label:'Assortiment',icon:Package},
   {key:'bunq',label:'Betalingen bunq',icon:CreditCard},
   {key:'koppeling',label:'Koppeling FINOM',icon:Link2},
+  {key:'browserless',label:'API Browserless',icon:Globe},
   {key:'merk',label:'Merk en instellingen',icon:Settings2},
 ]as const
 type ViewKey=typeof views[number]['key']
@@ -194,6 +197,7 @@ function AdminPage(){
       {view==='catalogus'&&<Catalogus data={data}/>}
       {view==='bunq'&&<BunqKoppeling bunq={data.bunq} busy={busy} post={post}/>}
       {view==='koppeling'&&<Koppeling data={data} busy={busy} post={post}/>}
+      {view==='browserless'&&<BrowserlessKoppeling browserless={data.browserless} busy={busy} post={post}/>}
       {view==='merk'&&<Merk data={data} busy={busy} post={post}/>}
     </main>
   </div>
@@ -562,6 +566,51 @@ function BunqKoppeling({bunq,busy,post}:{bunq:Bunq;busy:boolean;post:Post}){
           <button className="db-button" disabled={busy||apiKey.trim().length===0}>Sleutel opslaan en koppelen</button>
           {bunq.configured&&<button type="button" className="db-button ghost" disabled={busy} onClick={()=>post('/api/admin-bunq',{action:'test'})}>Verbinding testen</button>}
           {bunq.source==='beheer'&&<button type="button" className="db-button danger" disabled={busy} onClick={()=>post('/api/admin-bunq',{action:'remove-key'})}>Sleutel verwijderen</button>}
+        </div>
+      </form>
+    </div>
+  </section>
+}
+
+/**
+ * De koppeling met Browserless (browserless.io) voor headless Chrome. Het token
+ * is na het opslaan niet meer te bekijken, alleen te vervangen.
+ */
+function BrowserlessKoppeling({browserless,busy,post}:{browserless:Browserless;busy:boolean;post:Post}){
+  const[apiKey,setApiKey]=useState('')
+  const[baseUrl,setBaseUrl]=useState(browserless.baseUrl)
+  const[active,setActive]=useState(browserless.active)
+  const known=browserless.regions.some(region=>region.url===baseUrl)
+  return <section className="db-section">
+    <h2>API van Browserless</h2>
+    <p className="db-lead">Met een API-token van browserless.io kan de winkel op de server een echte Chrome-browser gebruiken, bijvoorbeeld om pagina’s uit te lezen, schermafbeeldingen te maken of pdf’s te genereren. Het token bewaren we buiten de code en is na opslaan niet meer te lezen.</p>
+    <div className="db-grid cols-4">
+      <Tile label="API-token" value={browserless.source==='omgeving'?'via de omgeving':browserless.keyLast4?`•••• ${browserless.keyLast4}`:'niet ingesteld'} hint={browserless.source==='omgeving'?'BROWSERLESS_API_KEY heeft voorrang':browserless.keyUpdatedAt?`bijgewerkt ${moment(browserless.keyUpdatedAt)}`:'voeg je token hieronder toe'}/>
+      <Tile label="Koppeling" value={browserless.active&&browserless.source!=='geen'?'Aan':'Uit'} hint={browserless.regions.find(region=>region.url===browserless.baseUrl)?.label??browserless.baseUrl}/>
+      <Tile label="Laatste controle" value={browserless.lastCheckAt?moment(browserless.lastCheckAt):'nog niet getest'} hint={browserless.lastCheckOk===null?'':browserless.lastCheckOk?'gelukt':'mislukt'}/>
+      <Tile label="Status" value={browserless.lastCheckOk?'Verbonden':browserless.lastCheckOk===false?'Fout':'Onbekend'}/>
+    </div>
+    {browserless.lastCheckOk===false&&browserless.lastCheckMessage&&<p className="db-message is-bad"><AlertTriangle/> {browserless.lastCheckMessage}</p>}
+    <div className="db-panel">
+      <h3>API-token en regio</h3>
+      <p className="db-note">Je token vind je na het inloggen op browserless.io in het dashboard onder API Key. Laat het tokenveld leeg om het bestaande token te bewaren.</p>
+      <form className="db-form cols-2" onSubmit={event=>{event.preventDefault();post('/api/admin-browserless',{action:'save',apiKey,baseUrl,active}).then(()=>setApiKey(''))}}>
+        <label className="db-field full">{browserless.keyLast4?'Nieuw API-token':'API-token van Browserless'}
+          <input type="password" value={apiKey} onChange={event=>setApiKey(event.target.value)} placeholder={browserless.keyLast4?`bewaard, eindigt op ${browserless.keyLast4}`:'plak hier je token'} autoComplete="off"/>
+          {browserless.source==='omgeving'&&<small>Het token uit de omgevingsvariabele BROWSERLESS_API_KEY heeft voorrang op wat je hier invult.</small>}
+        </label>
+        <label className="db-field">Regio
+          <select value={known?baseUrl:'eigen'} onChange={event=>setBaseUrl(event.target.value==='eigen'?'':event.target.value)}>
+            {browserless.regions.map(region=><option key={region.url} value={region.url}>{region.label}</option>)}
+            <option value="eigen">Eigen adres</option>
+          </select>
+        </label>
+        <label className="db-field">Api-adres<input value={baseUrl} onChange={event=>setBaseUrl(event.target.value)} placeholder="https://production-ams.browserless.io"/><small>Alleen https, zonder pad.</small></label>
+        <label className="db-check"><input type="checkbox" checked={active} onChange={event=>setActive(event.target.checked)}/><span>Koppeling aan: de winkel mag Browserless gebruiken.</span></label>
+        <div className="db-actions">
+          <button className="db-button" disabled={busy}>{apiKey.trim()?'Token opslaan en testen':'Instellingen opslaan'}</button>
+          {browserless.source!=='geen'&&<button type="button" className="db-button ghost" disabled={busy} onClick={()=>post('/api/admin-browserless',{action:'test'})}>Verbinding testen</button>}
+          {browserless.keyLast4&&browserless.source!=='omgeving'&&<button type="button" className="db-button danger" disabled={busy} onClick={()=>post('/api/admin-browserless',{action:'remove-key'})}>Token verwijderen</button>}
         </div>
       </form>
     </div>

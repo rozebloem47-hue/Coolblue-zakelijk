@@ -9,6 +9,7 @@ import{catalogProducts,invoices,orderItems,orders,siteSettings,visitorEvents}fro
 import{withAdmin}from'../shared/admin.js'
 import{integrationSettings,publicSettings}from'../shared/finom.js'
 import{bunqStatus}from'../shared/bunq.js'
+import{browserlessStatus}from'../shared/browserless.js'
 import{businessDiscountPercent,categories}from'../../src/data/products.js'
 import{fromCatalogRow,type CatalogRow}from'../../src/data/imported-products.js'
 
@@ -86,6 +87,7 @@ export default async(req:Request)=>withAdmin(req,async()=>{
     settings:settingsRow[0]??{siteName:'VoltVoorraad',tagline:null,supportEmail:null,supportPhone:null,logoKey:null},
     integration:publicSettings(integration),
     bunq:await bunqStatus(),
+    browserless:await browserlessStatus(),
   })
 })
 
