@@ -16,7 +16,7 @@ import{catalogProducts,invoices,orderItems,orders}from'../../db/schema.js'
 import{businessDiscount,exVat,priced,type Product}from'../../src/data/products.js'
 import{IMPORTED_ID_OFFSET,fromCatalogRow,isImportedId,type CatalogRow}from'../../src/data/imported-products.js'
 import{createInvoice,integrationSettings}from'../shared/finom.js'
-import{createBunqPaymentLink,recordBunqError}from'../shared/bunq.js'
+import{createBunqPaymentLink,idealPaymentUrl,recordBunqError}from'../shared/bunq.js'
 
 type Line={productId:number;variant?:string;quantity:number}
 
@@ -147,7 +147,8 @@ export default async(req:Request)=>{
       description:number,
       redirectUrl:`${origin}/bedankt?ref=${encodeURIComponent(number)}`,
     })
-    paymentUrl=link.shareUrl
+    // De klant gaat meteen door naar iDEAL; in het beheer blijft de gewone link staan, waarop elke betaalmethode te kiezen is.
+    paymentUrl=idealPaymentUrl(link.shareUrl)
     await db.update(orders).set({paymentMethod:'bunq',bunqPaymentUrl:link.shareUrl,bunqTabId:link.tabId}).where(eq(orders.id,order.id))
   }catch(error){
     await recordBunqError(error instanceof Error?error.message:'Onbekende fout bij bunq.')
