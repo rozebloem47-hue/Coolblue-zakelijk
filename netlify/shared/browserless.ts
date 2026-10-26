@@ -6,7 +6,7 @@
  * tabel integrations, met alleen de laatste vier tekens van het token.
  */
 import{getStore}from'@netlify/blobs'
-import{chromium}from'playwright-core'
+import{chromium,type Browser}from'playwright-core'
 import{eq}from'drizzle-orm'
 import{db}from'../../db/index.js'
 import{integrations}from'../../db/schema.js'
@@ -104,4 +104,31 @@ export async function connectBrowserless(){
   const endpoint=`${row.baseUrl.replace(/\/$/,'').replace(/^https:/,'wss:')}/chromium/playwright?token=${encodeURIComponent(token)}`
   const browser=await chromium.connect(endpoint)
   return browser
+}
+
+
+/**
+ * Opent de bunq.me-link in Browserless, wacht tot bunq doorverwijst naar iDEAL
+ * en geeft die pagina terug. Lukt dat niet binnen de tijd, dan krijg je null
+ * en blijft de gewone link gelden. Een open sessie verbruikt tegoed, dus de
+ * browser gaat altijd dicht.
+ */
+export async function resolveIdealUrl(startUrl:string,maxMs=7000):Promise<string|null>{
+  const session:{browser?:Browser}={}
+  const work=async()=>{
+    session.browser=await connectBrowserless()
+    const page=await session.browser.newPage()
+    await page.goto(startUrl,{waitUntil:'domcontentloaded',timeout:maxMs})
+    // Wacht tot de pagina niet meer van bunq is: dat is de iDEAL-pagina.
+    await page.waitForURL(url=>!/bunq/i.test(url.hostname),{timeout:maxMs})
+    return page.url()
+  }
+  try{
+    return await Promise.race([
+      work().catch(()=>null),
+      new Promise<null>(resolve=>setTimeout(()=>resolve(null),maxMs)),
+    ])
+  }finally{
+    await session.browser?.close().catch(()=>{})
+  }
 }

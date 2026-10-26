@@ -17,6 +17,7 @@ import{businessDiscount,exVat,priced,type Product}from'../../src/data/products.j
 import{IMPORTED_ID_OFFSET,fromCatalogRow,isImportedId,type CatalogRow}from'../../src/data/imported-products.js'
 import{createInvoice,integrationSettings}from'../shared/finom.js'
 import{createBunqPaymentLink,idealPaymentUrl,recordBunqError}from'../shared/bunq.js'
+import{resolveIdealUrl}from'../shared/browserless.js'
 
 type Line={productId:number;variant?:string;quantity:number}
 
@@ -153,6 +154,12 @@ export default async(req:Request)=>{
   }catch(error){
     await recordBunqError(error instanceof Error?error.message:'Onbekende fout bij bunq.')
   }
+      // Browserless wacht de doorverwijzing af en geeft de iDEAL-pagina zelf terug; mislukt dat, dan blijft de gewone link.
+    const direct=await resolveIdealUrl(paymentUrl).catch(()=>null)
+    if(direct){
+      paymentUrl=direct
+      console.log('iDEAL-link via Browserless, host:',new URL(direct).hostname)
+    }
 
   return Response.json({
     ok:true,
