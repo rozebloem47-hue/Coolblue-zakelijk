@@ -12,9 +12,10 @@ export const Route=createFileRoute('/admin')({
 
 type Counts={views:number;sessions:number}
 type Sales={revenue:string;count:number}
-type Order={id:number;orderNumber:string;companyName:string|null;email:string;total:string;status:string;firstName:string|null;lastName:string|null;phone:string|null;kvk:string|null;vatNumber:string|null;reference:string|null;street:string|null;houseNumber:string|null;postalCode:string|null;city:string|null;country:string|null;subtotal:string|null;discount:string|null;vatAmount:string|null;paymentMethod:string;businessOrder:boolean;notes:string|null;createdAt:string|null}
+type Order={id:number;orderNumber:string;companyName:string|null;email:string;total:string;status:string;firstName:string|null;lastName:string|null;phone:string|null;kvk:string|null;vatNumber:string|null;reference:string|null;street:string|null;houseNumber:string|null;postalCode:string|null;city:string|null;country:string|null;subtotal:string|null;discount:string|null;vatAmount:string|null;paymentMethod:string;businessOrder:boolean;notes:string|null;bunqPaymentUrl:string;bunqTabId:number|null;createdAt:string|null}
 type Invoice={id:number;orderId:number;number:string|null;status:string;amount:string;pdfUrl:string|null;dueDate:string|null;error:string|null;createdAt:string|null;orderNumber:string|null;companyName:string|null;email:string|null}
 type Integration={provider:string;baseUrl:string;invoicePath:string;keyLast4:string|null;keyUpdatedAt:string|null;senderCompany:string|null;senderVat:string|null;senderIban:string|null;senderAddress:string|null;paymentTermDays:number;autoCreate:boolean;active:boolean;lastCheckAt:string|null;lastCheckOk:boolean|null;lastCheckMessage:string|null}
+type Bunq={configured:boolean;source:'omgeving'|'beheer'|'geen';keyLast4:string|null;connected:boolean;iban:string;lastError:string}
 type Settings={siteName:string;tagline:string|null;supportEmail:string|null;supportPhone:string|null;logoKey:string|null}
 type Data={
   generatedAt:string
@@ -32,6 +33,7 @@ type Data={
   catalog:{products:number;departments:number;collections:number;items:number;brands:number;deals:number;dealShare:number;averageDeal:number;businessDiscount:string;perDepartment:{slug:string;name:string;products:number;deals:number}[];topDeals:{name:string;department:string;dealPercent?:number;price:number;listPrice?:number}[]}
   settings:Settings
   integration:Integration
+  bunq:Bunq
 }
 
 const views=[
@@ -41,7 +43,7 @@ const views=[
   {key:'facturen',label:'Facturen',icon:FileText},
   {key:'producten',label:'Producten',icon:Tag},
   {key:'catalogus',label:'Assortiment',icon:Package},
-  {key:'koppeling',label:'Bankkoppeling FINOM',icon:Link2},
+  {key:'koppeling',label:'Koppelingen FINOM en bunq',icon:Link2},
   {key:'merk',label:'Merk en instellingen',icon:Settings2},
 ]as const
 type ViewKey=typeof views[number]['key']
@@ -339,7 +341,7 @@ function Orders({data,busy,post}:{data:Data;busy:boolean;post:Post}){
   return <>
     <section className="db-section">
       <h2>Orders</h2>
-      <p className="db-lead">Alle bestellingen komen op factuur binnen. Klap een order open voor de factuurgegevens van de klant.</p>
+      <p className="db-lead">Klanten betalen via een bunq.me-link met het ordernummer als beschrijving; lukt die link niet, dan betalen ze op factuur. Klap een order open voor de factuurgegevens en de betaallink.</p>
       <div className="db-grid cols-4">
         <Tile label="Orders vandaag" value={count(data.revenue.today.count)} hint={euro(data.revenue.today.revenue)}/>
         <Tile label="Orders 7 dagen" value={count(data.revenue.week.count)} hint={euro(data.revenue.week.revenue)}/>
@@ -358,7 +360,7 @@ function Orders({data,busy,post}:{data:Data;busy:boolean;post:Post}){
               <tbody>{data.orders.map(order=><tr key={order.id}>
                 <td><b>{order.orderNumber}</b><small>{moment(order.createdAt)}</small></td>
                 <td><b>{order.companyName??`${order.firstName??''} ${order.lastName??''}`.trim()}</b><small>{order.email}</small>
-                  {open===order.id&&<small>{address(order)}<br/>{order.kvk?`KvK ${order.kvk}`:''} {order.vatNumber??''}<br/>{order.reference?`Referentie: ${order.reference}`:''}{order.notes?<><br/>Opmerking: {order.notes}</>:null}</small>}
+                  {open===order.id&&<small>{address(order)}<br/>{order.kvk?`KvK ${order.kvk}`:''} {order.vatNumber??''}<br/>{order.reference?`Referentie: ${order.reference}`:''}{order.notes?<><br/>Opmerking: {order.notes}</>:null}<br/>{order.bunqPaymentUrl?<>Betaling: <a href={order.bunqPaymentUrl} target="_blank" rel="noreferrer">bunq.me-link van deze order</a> — betaalde de klant nog niet? Stuur deze link door.</>:'Betaling: op factuur, er is geen bunq.me-link gemaakt.'}</small>}
                 </td>
                 <td className="db-num">{euro(order.total)}<small>{order.discount&&Number(order.discount)>0?`−${euro(order.discount)} korting`:'geen korting'}</small></td>
                 <td>
@@ -476,6 +478,8 @@ function Koppeling({data,busy,post}:{data:Data;busy:boolean;post:Post}){
   const set=(field:keyof typeof form)=>(event:React.ChangeEvent<HTMLInputElement>)=>setForm(current=>({...current,[field]:event.target.type==='checkbox'?event.target.checked:event.target.value}))
 
   return <>
+    <BunqKoppeling bunq={data.bunq} busy={busy} post={post}/>
+
     <section className="db-section">
       <h2>Bankkoppeling FINOM</h2>
       <p className="db-lead">Met je FINOM-API-sleutel maken we bij elke bestelling automatisch een factuur aan, gericht aan de gegevens die de klant bij het afrekenen invult. De sleutel bewaren we versleuteld buiten de code en is na opslaan niet meer te lezen.</p>
@@ -527,6 +531,40 @@ function Koppeling({data,busy,post}:{data:Data;busy:boolean;post:Post}){
       </div>
     </section>
   </>
+}
+
+/**
+ * De koppeling met bunq. Bij elke bestelling maakt de winkel hiermee een
+ * bunq.me-link met het bedrag en het ordernummer erop. De sleutel is na het
+ * opslaan niet meer te bekijken, alleen te vervangen.
+ */
+function BunqKoppeling({bunq,busy,post}:{bunq:Bunq;busy:boolean;post:Post}){
+  const[apiKey,setApiKey]=useState('')
+  return <section className="db-section">
+    <h2>Betalingen via bunq</h2>
+    <p className="db-lead">Elke bestelling krijgt automatisch een bunq.me-betaallink met het totaalbedrag en het ordernummer als beschrijving. De klant gaat na het bestellen meteen naar die link en kiest daar iDEAL, Bancontact of creditcard.</p>
+    <div className="db-grid cols-4">
+      <Tile label="API-sleutel" value={bunq.source==='omgeving'?'via de omgeving':bunq.source==='beheer'?(bunq.keyLast4?`•••• ${bunq.keyLast4}`:'hier ingesteld'):'niet ingesteld'} hint={bunq.source==='omgeving'?'BUNQ_API_KEY heeft voorrang':'voeg je sleutel hieronder toe'}/>
+      <Tile label="Rekening" value={bunq.connected?(bunq.iban||'gekoppeld'):'nog niet gekoppeld'} hint={bunq.connected?'hier komen de betalingen binnen':'wordt bij de eerste bestelling gekoppeld'}/>
+      <Tile label="Betaallinks" value={bunq.configured?'Aan':'Uit'} hint={bunq.configured?'elke order krijgt een bunq.me-link':'klanten betalen nu op factuur'}/>
+      <Tile label="Laatste fout" value={bunq.lastError?'zie hieronder':'geen'}/>
+    </div>
+    {bunq.lastError&&<p className="db-message is-bad"><AlertTriangle/> {bunq.lastError}</p>}
+    <div className="db-panel">
+      <h3>API-sleutel van bunq</h3>
+      <p className="db-note">Te vinden in de bunq-app onder Instellingen, Ontwikkelaars, API-sleutels. Na opslaan is de sleutel niet meer te bekijken.</p>
+      <form className="db-form cols-2" onSubmit={event=>{event.preventDefault();post('/api/admin-bunq',{action:'save',apiKey}).then(()=>setApiKey(''))}}>
+        <label className="db-field full">{bunq.configured?'Nieuwe API-sleutel':'API-sleutel van bunq'}
+          <input type="password" value={apiKey} onChange={event=>setApiKey(event.target.value)} placeholder={bunq.keyLast4?`bewaard, eindigt op ${bunq.keyLast4}`:'plak hier je sleutel'} autoComplete="off"/>
+          {bunq.source==='omgeving'&&<small>De sleutel uit de omgevingsvariabele BUNQ_API_KEY heeft voorrang op wat je hier invult.</small>}
+        </label>
+        <div className="db-actions">
+          <button className="db-button" disabled={busy||apiKey.trim().length===0}>Sleutel opslaan</button>
+          {bunq.source==='beheer'&&<button type="button" className="db-button danger" disabled={busy} onClick={()=>post('/api/admin-bunq',{action:'remove-key'})}>Sleutel verwijderen</button>}
+        </div>
+      </form>
+    </div>
+  </section>
 }
 
 function Merk({data,busy,post}:{data:Data;busy:boolean;post:Post}){
