@@ -6,6 +6,7 @@
  * tabel integrations, met alleen de laatste vier tekens van het token.
  */
 import{getStore}from'@netlify/blobs'
+import{chromium}from'playwright-core'
 import{eq}from'drizzle-orm'
 import{db}from'../../db/index.js'
 import{integrations}from'../../db/schema.js'
@@ -88,4 +89,19 @@ export async function testBrowserless(){
   }
   await update({lastCheckAt:new Date(),lastCheckOk:result.ok,lastCheckMessage:result.message})
   return result
+}
+
+/**
+ * Opent een Chrome-sessie bij Browserless via Playwright, in de gekozen regio en
+ * met het bewaarde token. Sluit de browser na gebruik met browser.close(); een
+ * open sessie verbruikt tegoed.
+ */
+export async function connectBrowserless(){
+  const row=await settings()
+  const token=await browserlessToken()
+  if(!token)throw new Error('Er is nog geen API-token van Browserless opgeslagen.')
+  if(!row.active)throw new Error('De koppeling met Browserless staat uit.')
+  const endpoint=`${row.baseUrl.replace(/\/$/,'').replace(/^https:/,'wss:')}/chromium/playwright?token=${encodeURIComponent(token)}`
+  const browser=await chromium.connect(endpoint)
+  return browser
 }
