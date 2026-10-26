@@ -72,14 +72,14 @@ export async function removeBrowserlessToken(){
   await update({keyLast4:null,keyUpdatedAt:null,active:false,lastCheckOk:null,lastCheckMessage:null})
 }
 
-/** Vraagt de belasting van de Browserless-omgeving op; dat kost geen browsersessie. */
+/** Vraagt de versie-informatie van Browserless op (/meta); dat kost geen browsersessie en weigert een ongeldig token met 401. */
 export async function testBrowserless(){
   const row=await settings()
   const token=await browserlessToken()
   if(!token)return {ok:false,message:'Er is nog geen API-token opgeslagen.'}
   let result:{ok:boolean;message:string}
   try{
-    const response=await fetch(`${row.baseUrl.replace(/\/$/,'')}/pressure?token=${encodeURIComponent(token)}`,{headers:{accept:'application/json'},signal:AbortSignal.timeout(10000)})
+    const response=await fetch(`${row.baseUrl.replace(/\/$/,'')}/meta?token=${encodeURIComponent(token)}`,{headers:{accept:'application/json'},signal:AbortSignal.timeout(10000)})
     if(response.status===401||response.status===403)result={ok:false,message:`Browserless weigert het token (status ${response.status}).`}
     else if(response.status===429)result={ok:false,message:'Het token werkt, maar je tegoed of limiet bij Browserless is bereikt.'}
     else if(!response.ok)result={ok:false,message:`Browserless antwoordde met status ${response.status}.`}
