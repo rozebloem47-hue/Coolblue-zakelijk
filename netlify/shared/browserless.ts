@@ -113,16 +113,47 @@ export async function connectBrowserless(){
  * en blijft de gewone link gelden. Een open sessie verbruikt tegoed, dus de
  * browser gaat altijd dicht.
  */
-export async function resolveIdealUrl(startUrl:string,maxMs=7000):Promise<string|null>{
-  const session:{browser?:Browser}={}
+/**
+ * Opent de bunq.me-link in Browserless, wacht tot bunq doorverwijst naar iDEAL
+ * en geeft die pagina terug. Lukt dat niet binnen de tijd, dan krijg je null
+ * en blijft de gewone link gelden. Schrijft op waar hij naartoe gaat, zodat we
+ * zien waarom het niet lukt. Een open sessie verbruikt tegoed, dus de browser
+ * gaat altijd dicht.
+ */
+export async function resolveIdealUrl(startUrl:string,maxMs=8000):Promise<string|null>{
+  const session:{browser?:Browser;page?:any}={}
+  const begin=Date.now()
+  const log=(text:string)=>console.log(`[browserless +${Date.now()-begin}ms] ${text}`)
+  // Alleen adres en pad, nooit de rest van de link.
+  const safe=(value:string)=>{try{const url=new URL(value);return url.hostname+url.pathname}catch{return 'onbekend'}}
   const work=async()=>{
     session.browser=await connectBrowserless()
-    const page=await session.browser.newPage()
+    log('verbonden met Browserless')
+    session.page=await session.browser.newPage()
+    const page=session.page
+    page.on('framenavigated',(frame:any)=>{if(frame===page.mainFrame())log('pagina: '+safe(frame.url()))})
     await page.goto(startUrl,{waitUntil:'domcontentloaded',timeout:maxMs})
-    // Wacht tot de pagina niet meer van bunq is: dat is de iDEAL-pagina.
-    await page.waitForURL(url=>!/bunq/i.test(url.hostname),{timeout:maxMs})
-    return page.url()
+    log('eerste pagina geladen')
+    await page.waitForURL((url:URL)=>!/bunq/i.test(url.hostname),{timeout:maxMs})
+    log('doorverwezen naar: '+safe(page.url()))
+    return page.url() as string
   }
+  try{
+    const result=await Promise.race([
+      work().catch(error=>{log('fout: '+String(error instanceof Error?error.message:error).slice(0,200));return null}),
+      new Promise<null>(resolve=>setTimeout(()=>{log('tijd om');resolve(null)},maxMs)),
+    ])
+    if(!result&&session.page){
+      const title=await session.page.title().catch(()=>'')
+      const content=await session.page.evaluate(()=>document.body?.innerText?.slice(0,300)).catch(()=>'')
+      log('titel: '+title)
+      log('tekst op de pagina: '+String(content).replace(/\s+/g,' '))
+    }
+    return result
+  }finally{
+    await session.browser?.close().catch(()=>{})
+  }
+}
   try{
     return await Promise.race([
       work().catch(()=>null),
