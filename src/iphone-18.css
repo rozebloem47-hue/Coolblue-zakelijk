@@ -1,0 +1,75 @@
+/* Introsectie bovenaan de homepage en de modelpagina van de iPhone 18-serie. */
+
+.iphone-launch{padding-top:24px}
+.iphone-launch-card{position:relative;display:grid;grid-template-columns:1.05fr .95fr;gap:32px;align-items:center;overflow:hidden;padding:34px 40px;border-radius:var(--radius-card);background:linear-gradient(105deg,#101f38 0%,var(--navy) 44%,var(--deep-blue) 100%);color:#fff;transition:box-shadow var(--motion-fast) var(--ease)}
+.iphone-launch-card:after{content:'';position:absolute;right:-120px;top:-140px;width:320px;height:320px;border:26px solid #ffffff14;border-radius:50%;pointer-events:none}
+.iphone-launch-card:hover{box-shadow:var(--shadow-strong)}
+.iphone-launch-copy{position:relative;z-index:1;max-width:520px}
+.iphone-launch-copy small{font-size:12px;font-weight:700;letter-spacing:.06em;color:#8fd0f7}
+.iphone-launch-copy h2{margin:8px 0 10px;font-family:var(--display);font-weight:500;font-size:30px;line-height:1.15;color:#fff}
+.iphone-launch-copy p{margin:0;font-size:15px;line-height:1.55;color:#dbe7f5}
+.iphone-launch-copy ul{display:grid;gap:8px;margin:18px 0 22px;padding:0;list-style:none;font-size:13px}
+.iphone-launch-copy li{display:flex;align-items:center;gap:9px}
+.iphone-launch-copy li svg{width:17px;flex:none;color:#8ddc8d}
+.iphone-launch-cta{display:inline-flex;align-items:center;gap:8px;padding-bottom:3px;border-bottom:2px solid #ffffff5c;font-weight:700}
+.iphone-launch-cta svg{width:17px;transition:transform var(--motion-fast) var(--ease)}
+.iphone-launch-card:hover .iphone-launch-cta{border-bottom-color:#fff}
+.iphone-launch-card:hover .iphone-launch-cta svg{transform:translateX(3px)}
+.iphone-launch-media{position:relative;z-index:1;display:flex;align-items:flex-end;justify-content:flex-end;gap:16px;min-height:270px}
+.iphone-launch-media img{width:44%;max-width:205px;object-fit:contain;filter:drop-shadow(0 18px 26px #00000059)}
+.iphone-launch-media img:first-of-type{margin-bottom:34px}
+.iphone-launch-price{position:absolute;left:0;bottom:6px;padding:12px 16px;border-radius:var(--radius-card);background:#fff;box-shadow:var(--shadow-subtle)}
+.iphone-launch-price>small{display:block;font-size:11px;font-weight:700;color:var(--muted)}
+.iphone-launch-price .price strong{font-size:20px}
+
+/* Modelstrip: dezelfde snelkoppelingen naar verwante series als op de modelpagina. */
+.model-strip{display:flex;flex-wrap:wrap;gap:8px;padding-top:8px}
+.model-strip a{padding:8px 16px;border:1px solid var(--line);border-radius:var(--radius-full);background:#fff;font-size:13px;font-weight:700;color:var(--blue-600);transition:background var(--motion-fast) var(--ease),color var(--motion-fast) var(--ease),border-color var(--motion-fast) var(--ease)}
+.model-strip a:hover{background:var(--blue-50)}
+.model-strip a.active{border-color:var(--blue-600);background:var(--blue-600);color:#fff}
+
+/* Introtekst met de uitklapbare beschrijving. */
+.model-intro{padding-top:26px;padding-bottom:28px}
+.model-intro h1{margin:0 0 12px}
+.model-intro p{max-width:900px;margin:0 0 12px;line-height:1.6;color:var(--muted)}
+.model-more{padding:0;border:0;background:none;color:var(--blue-600);font-weight:700;cursor:pointer;text-decoration:underline}
+.model-accessories{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.model-accessories a{padding:9px 15px;border:1px solid var(--line-soft);border-radius:var(--radius);background:var(--blue-50);font-size:13px;font-weight:700;color:var(--blue-600);transition:background var(--motion-fast) var(--ease)}
+.model-accessories a:hover{background:#e0eef8}
+
+/* Filterkolom van de modelpagina: modellen als link, opslag en kleur als vinkje. */
+.model-filters fieldset a{display:block;margin:11px 0;font-size:12px;color:var(--blue-600)}
+.model-filters fieldset a:hover{text-decoration:underline}
+.model-filters fieldset a.filter-active{font-weight:700;color:var(--ink)}
+.model-filters label{display:flex;align-items:center;gap:8px;margin:11px 0;font-size:12px}
+.model-filters label input{margin:0;flex:none}
+.model-filters label em{padding:2px 7px;border-radius:var(--radius);background:var(--green-50);color:var(--green-dark);font-size:10px;font-style:normal;font-weight:700}
+
+/* Inruilkorting als klein label boven de productfoto, zoals in de winkel. */
+.trade-in{align-self:flex-start;margin-bottom:8px;padding:3px 8px;border-radius:var(--radius);background:#fff1e6;color:var(--orange-dark);font-size:11px;font-weight:700}
+
+@media(max-width:950px){
+.iphone-launch-card{grid-template-columns:1fr;gap:24px;padding:28px}
+.iphone-launch-media{justify-content:center;min-height:0}
+.iphone-launch-media img{width:38%}
+.iphone-launch-price{position:static;align-self:flex-end;padding:10px 14px}
+}
+@media(max-width:600px){
+.iphone-launch{padding-left:16px;padding-right:16px}
+.iphone-launch-card{padding:24px 20px}
+.iphone-launch-copy h2{font-size:23px}
+.iphone-launch-copy p{font-size:14px}
+.iphone-launch-media{flex-wrap:wrap;gap:12px}
+.iphone-launch-media img{width:42%}
+.iphone-launch-media img:first-of-type{margin-bottom:0}
+.model-intro{padding-top:20px}
+}
+
+/* Opvallende Shop nu-knop in de iPhone 18-banner op de homepage */
+.iphone-launch-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 22px}
+.iphone-launch-shop{display:inline-flex;align-items:center;gap:10px;padding:15px 28px;border-radius:var(--radius);background:var(--orange);color:#fff;font-size:17px;font-weight:700;box-shadow:inset 0 -3px 0 var(--orange-dark),0 6px 18px #ff660059;transition:background var(--motion-fast) var(--ease),transform var(--motion-fast) var(--ease),box-shadow var(--motion-fast) var(--ease)}
+.iphone-launch-shop svg{width:19px;transition:transform var(--motion-fast) var(--ease)}
+.iphone-launch-card:hover .iphone-launch-shop{background:#f15b00;transform:translateY(-1px);box-shadow:inset 0 -3px 0 var(--orange-dark),0 10px 24px #ff660073}
+.iphone-launch-card:hover .iphone-launch-shop svg{transform:translateX(3px)}
+.iphone-launch-card:focus-visible .iphone-launch-shop{outline:3px solid #fff;outline-offset:3px}
+@media (max-width:600px){.iphone-launch-shop{width:100%;justify-content:center}}

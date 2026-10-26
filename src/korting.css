@@ -1,0 +1,13 @@
+/* Ondernemerskorting: overal een zachte hint, nergens een schreeuwende banner. */
+.price-business{font-size:11px;line-height:1.35;font-weight:600;color:var(--green-dark)}
+.detail-price .price-business{font-size:13px;font-weight:600}
+.hero-panel .price-business{color:inherit}
+
+/* Mandje: de korting als aparte regel boven het totaal. */
+.order-subtotal,.order-discount{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;margin-top:10px}
+.order-subtotal{color:var(--muted)}
+.order-discount{color:var(--green-dark);font-weight:700}
+.company-toggle small{display:block;margin-top:5px;font-size:12px;font-weight:400;color:var(--muted)}
+
+/* Filterkolom: korte toelichting in plaats van een vinkje waar niks te kiezen valt. */
+.filter-note{margin:0;font-size:12px;line-height:1.5;color:var(--muted)}

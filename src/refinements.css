@@ -1,0 +1,164 @@
+/* Verfijningslaag: dezelfde ontwerptaal als coolblue.nl (kleuren, hoeken, schaduwen en beweging). Wordt als laatste geladen. */
+body{font-size:var(--fs-body);line-height:20px;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+img{max-width:100%}
+/* Typografie van coolblue.nl: Open Sans voor alle tekst, een schreefletter voor de paginatitels
+   (Zilla Slab als vervanger van hun eigen Dobra Slab) en vet is 700, niet zwaarder. */
+h1,h2,h3{color:var(--ink);letter-spacing:normal;font-weight:700}
+h1{font-family:var(--display);font-weight:500;font-size:var(--fs-h1);line-height:36px;color:var(--heading-main)}
+h2{font-size:var(--fs-h2);line-height:24px}
+h3{font-size:16px;line-height:22px}
+:is(.hero-panel,.advice-banner,.campaign-main,.usecase-grid article:last-child,footer) :is(h1,h2,h3){color:inherit}
+.lead,.hero-panel p,.page-hero p{font-size:var(--fs-lead)}
+a{transition:color var(--motion-fast) var(--ease)}
+.kicker,.hero-label{font-size:12px;letter-spacing:.06em;color:var(--blue-600)}
+.breadcrumbs{font-size:13px}
+.breadcrumbs a,.section-heading>a,.retail-heading>a,.collection-card a,.usecase-grid a,.catalog-help a,.info-entrances a,.review-card a,.brand-world a,.promotion-card span,.filters h3 svg{color:var(--blue-600)}
+.breadcrumbs a:hover,.retail-heading>a:hover,.section-heading>a:hover{color:var(--factblue);text-decoration:underline}
+
+/* Knoppen: groen voor de actie, factblue voor navigatie, oranje alleen als accent. */
+.button{border-radius:var(--radius);font-weight:700;padding:13px 22px;transition:background var(--motion-fast) var(--ease),box-shadow var(--motion-fast) var(--ease),color var(--motion-fast) var(--ease)}
+.primary{background:var(--green);color:#fff;box-shadow:inset 0 -2px 0 var(--green-dark)}
+.primary:hover{background:var(--green-dark);box-shadow:inset 0 -2px 0 var(--green-darker)}
+.secondary{background:#fff;color:var(--factblue);border:1px solid var(--factblue);box-shadow:inset 0 -2px 0 #1c468429}
+.secondary:hover{background:var(--blue-50)}
+.white-button{color:var(--factblue);box-shadow:inset 0 -2px 0 #1b1e2417}
+.white-button:hover{background:var(--blue-50)}
+.button:active,.square-button:active{box-shadow:none;transform:translateY(1px)}
+.square-button{width:44px;height:42px;background:var(--green);box-shadow:inset 0 -2px 0 var(--green-dark);transition:background var(--motion-fast) var(--ease)}
+.square-button:hover{background:var(--green-dark)}
+.accent-button{background:var(--orange);color:#fff;box-shadow:inset 0 -2px 0 var(--orange-dark)}
+a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.field input,.field select,.newsletter-card input,.catalog-head select,.login-card input{border-radius:var(--radius);border:1px solid var(--grey-600);transition:border-color var(--motion-fast) var(--ease),box-shadow var(--motion-fast) var(--ease)}
+.field input:focus,.field select:focus,.newsletter-card input:focus,.catalog-head select:focus,.login-card input:focus{border-color:var(--blue-500);box-shadow:0 0 0 3px #0088d62e;outline:0}
+
+/* Vlakken: zachte hoeken, rustige schaduw bij hover in plaats van verschuiven. */
+.product-card,.category-card,.category-tile,.collection-card,.checkout-card,.order-card,.login-card,.admin-card,.metric,.info-entrances article,.help-grid>article,.catalog-help,.active-filter{border-color:var(--line-soft);border-radius:var(--radius-card)}
+.product-card,.category-card,.category-tile,.collection-card{transition:box-shadow var(--motion-fast) var(--ease),border-color var(--motion-fast) var(--ease)}
+.product-card:hover,.category-card:hover,.category-tile:hover,.collection-card:hover{box-shadow:var(--shadow-subtle);border-color:var(--line);transform:none}
+.collection-card{box-shadow:none}
+.hero-panel,.hero-showcase,.promotion-card,.brand-world,.campaign,.usecase-grid article,.advice-banner,.service-strip{border-radius:var(--radius-card)}
+.service-strip{border-color:var(--line-soft)}
+.service-strip svg{color:var(--blue-600)}
+.retail-section{padding-top:52px}
+.retail-heading{border-bottom:0;padding-bottom:0;margin-bottom:20px}
+.retail-heading p,.section-heading p{font-size:13px;color:var(--muted)}
+.collection-block>h2{border-bottom:0;padding-bottom:0}
+.category-rail{background:transparent;padding:0}
+.rail-buttons button{border-color:var(--line);border-radius:var(--radius-full);color:var(--blue-600);transition:background var(--motion-fast) var(--ease),border-color var(--motion-fast) var(--ease)}
+.rail-buttons button:hover{background:var(--blue-50);border-color:var(--blue-500)}
+.brand-pill{border-radius:var(--radius-full);border-color:var(--line);font-size:13px;transition:border-color var(--motion-fast) var(--ease),background var(--motion-fast) var(--ease)}
+.brand-pill.active{background:var(--factblue);border-color:var(--factblue)}
+.favorite{color:var(--blue-600);box-shadow:var(--shadow-subtle);transition:color var(--motion-fast) var(--ease)}
+.favorite:hover{color:var(--factblue)}
+.notice{border-radius:var(--radius);background:var(--green-50);border-left-color:var(--green)}
+footer{background:var(--footer)}
+.review-card .star-bar svg{width:22px;height:22px}
+.review-stars{color:var(--line)}
+.review-card>strong{color:var(--factblue)}
+.footer-main p,.footer-main a{color:#c7d1df}
+footer>small{border-top-color:#ffffff24;color:#a8b0bd}
+
+/* Foto's: productbeelden vullen het vlak netjes, met een rustige zoom bij hover. */
+.product-visual{border-radius:var(--radius);overflow:hidden}
+.visual-photo{width:100%;height:100%;object-fit:contain;transition:transform var(--motion-medium) var(--ease)}
+.product-visual:has(.visual-photo) .visual-orbit{display:none}
+.product-card .product-visual:has(.visual-photo),.collection-card .product-visual:has(.visual-photo),.category-card .product-visual:has(.visual-photo),.order-line .product-visual:has(.visual-photo){background:#fff!important}
+.product-card .product-visual{padding:8px}
+.product-card:hover .visual-photo,.category-card:hover .visual-photo,.collection-card:hover .visual-photo{transform:scale(1.04)}
+.promotion-card .product-visual:has(.visual-photo),.brand-world .product-visual:has(.visual-photo),.campaign-main .product-visual:has(.visual-photo),.hero-showcase .product-visual:has(.visual-photo){background:transparent!important}
+.promotion-card .visual-photo,.brand-world .visual-photo,.campaign-main .visual-photo,.hero-showcase .visual-photo{object-position:bottom right;filter:drop-shadow(0 12px 18px #1b1e2426)}
+.hero-showcase .product-visual{width:74%;height:76%;right:-2%}
+.campaign-main .product-visual:has(.visual-photo) .visual-orbit{display:none}
+.category-card .product-visual{height:112px}
+.product-detail .product-visual:has(.visual-photo){background:#fff!important;border:1px solid var(--line-soft);padding:24px}
+.order-line .product-visual{border:1px solid var(--line-soft)}
+
+/* Beoordeling: sterrenbalk met de score op tien, zoals klanten die kennen. */
+.rating{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.star-bar{position:relative;display:inline-flex;flex:none;color:var(--line)}
+.star-bar-empty,.star-bar-full{display:flex;gap:1px}
+.star-bar svg{width:14px;height:14px;flex:none}
+.star-bar-full{position:absolute;inset:0;overflow:hidden;color:var(--yellow)}
+.rating-score{font-weight:700;color:var(--ink)}
+.rating-score small{font-weight:400;color:var(--muted);font-size:11px}
+.product-card h3{color:var(--ink)}
+.product-card a:hover h3{color:var(--blue-600);text-decoration:underline}
+.product-card li svg,.stock svg,.collection-advice li svg{color:var(--green)}
+.stock{color:var(--green);gap:4px}
+.delivery{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:7px}
+.delivery svg{width:15px;flex:none;color:var(--blue-600)}
+
+/* Prijzen: bedrag op de voorgrond, altijd met de prijs exclusief btw eronder. */
+.price{display:grid;gap:1px}
+.price strong{font-size:22px;font-weight:700;line-height:1.15;color:var(--ink)}
+.price-suffix{font-size:15px;font-weight:700}
+.price small{font-size:11px;color:var(--muted)}
+.price-row{align-items:flex-end;gap:10px;margin-top:12px}
+.detail-price{margin:24px 0}
+.detail-price strong{font-size:28px}
+.detail-price .price-suffix{font-size:22px}
+.detail-price small{font-size:13px}
+.detail-actions{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px}
+.detail-service{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:9px;font-size:13px}
+.detail-service li{display:flex;align-items:center;gap:9px}
+.detail-service svg{width:18px;flex:none;color:var(--blue-600)}
+.product-detail .notice{margin-top:22px}
+
+/* Collectie- en merkpagina's met beeld. */
+.collection-page-hero{background:var(--blue-50);border-top-color:var(--line-soft)}
+.collection-page-hero>.wrap{display:grid;grid-template-columns:1.2fr .8fr;gap:44px;align-items:center}
+.collection-hero-media{background:#fff;border:1px solid var(--line-soft);border-radius:var(--radius-card);padding:16px;box-shadow:var(--shadow-subtle)}
+.collection-hero-media img{display:block;width:100%;max-height:240px;object-fit:contain;margin:auto}
+.collection-page-links a{gap:12px;justify-content:flex-start}
+.collection-page-links a>span{flex:1}
+.collection-page-links a:hover{background:var(--blue-50)}
+.link-thumb{width:46px;height:46px;object-fit:contain;flex:none}
+.brand-spotlight{display:grid;grid-template-columns:250px 1fr;gap:30px;align-items:center;background:var(--blue-50);border-radius:var(--radius-card);padding:26px 30px;margin:26px 0 22px}
+.brand-spotlight img{display:block;width:100%;max-height:170px;object-fit:contain}
+.brand-spotlight h2{margin:6px 0 8px}
+.brand-spotlight p{margin:0;font-size:13px;color:var(--muted)}
+
+/* Kleinere schermen en minder beweging. */
+@media(max-width:950px){
+.collection-page-hero>.wrap{grid-template-columns:1fr;gap:26px}
+.collection-hero-media img{max-height:200px}
+.brand-spotlight{grid-template-columns:1fr;gap:20px}
+}
+@media(max-width:600px){h1{font-size:20px;line-height:26px}
+h2{font-size:16px;line-height:22px}
+.retail-section{padding-top:40px}
+.price strong{font-size:20px}
+.detail-price strong{font-size:24px}
+}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}
+*,*:before,*:after{transition-duration:.01ms!important;animation-duration:.01ms!important}
+}
+/* Mobiel: twee productkaarten naast elkaar, compacter zodat alles past. */
+@media(max-width:600px){
+.product-grid,.catalog-layout .product-grid,.collection-product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.product-grid .product-card{padding:10px}
+.product-grid .product-visual{height:130px}
+.product-grid .product-card h3{font-size:13px;line-height:1.3;min-height:34px;overflow-wrap:anywhere}
+.product-grid .product-card ul{display:none}
+.product-grid .favorite{width:28px;height:28px;right:6px;top:6px}
+.product-grid .deal-flag,.product-grid .trade-in{font-size:9px;padding:3px 6px;max-width:calc(100% - 36px)}
+.product-grid .delivery{display:none}
+.product-grid .price-row{flex-direction:column;align-items:stretch;gap:8px}
+.product-grid .price-row .price strong{font-size:17px}
+.product-grid .price-row .square-button{width:40px;height:40px;align-self:flex-end}
+.product-grid .price-business{font-size:10px}
+}
+/* Filters: op mobiel ingeklapt achter een knop, zodat de producten direct zichtbaar zijn. */
+.filter-toggle{display:none}
+@media(max-width:600px){
+.filters .filter-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;padding:0 14px;border:1px solid var(--line);border-radius:var(--radius);background:white;color:var(--ink);font-size:14px;font-weight:700;cursor:pointer}
+.filter-toggle svg{width:18px;height:18px;color:var(--blue-600)}
+.filter-toggle-count{display:inline-grid;place-items:center;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:var(--blue-600);color:white;font-size:11px}
+.filter-toggle .filter-toggle-chevron{margin-left:auto;color:var(--muted);transition:transform var(--motion-fast) var(--ease)}
+.filters.is-open .filter-toggle-chevron{transform:rotate(180deg)}
+.filters .filter-body{display:none}
+.filters.is-open .filter-body{display:block;margin-top:14px;padding:14px;border:1px solid var(--line);border-radius:var(--radius);background:white}
+.filters .filter-body>h3{display:none}
+.filters{padding-right:0}
+}
+.price-from{display:block;font-size:12px;color:var(--muted);line-height:1.2}

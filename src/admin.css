@@ -1,0 +1,200 @@
+/*
+  Beheeromgeving. Een eigen, rustige werkomgeving: geen winkelnavigatie, geen
+  winkelbeeld. De kleuren komen uit de variabelen van de winkel, zodat de
+  servicebalie-identiteit herkenbaar blijft.
+*/
+.db-app{
+  --db-surface:#f6f8fa;
+  --db-panel:#ffffff;
+  --db-line:var(--line-soft);
+  --db-ink:var(--ink);
+  --db-muted:var(--muted);
+  --db-accent:var(--factblue);
+  --db-bar:#5b86c4;
+  --db-bar-strong:var(--factblue);
+  --db-good:var(--green);
+  --db-warning:var(--yellow);
+  --db-critical:var(--red);
+  --db-rail:268px;
+  min-height:100vh;
+  display:grid;
+  grid-template-columns:var(--db-rail) 1fr;
+  background:var(--db-surface);
+  color:var(--db-ink);
+  font-family:var(--body);
+}
+
+/* Zijbalk */
+.db-rail{background:var(--navy);color:#e7eef7;padding:26px 20px 40px;display:flex;flex-direction:column;gap:26px;position:sticky;top:0;height:100vh}
+.db-brand{display:flex;flex-direction:column;gap:3px}
+.db-brand b{font-family:var(--display);font-weight:600;font-size:19px;letter-spacing:.01em}
+.db-brand small{color:#a8bdd8;font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+.db-nav{display:flex;flex-direction:column;gap:2px}
+.db-nav button{display:flex;align-items:center;gap:11px;background:none;border:0;color:#cddcec;text-align:left;padding:10px 12px;border-radius:var(--radius);cursor:pointer;font-size:13px;transition:background var(--motion-base) var(--ease),color var(--motion-base) var(--ease)}
+.db-nav button:hover{background:#ffffff14;color:white}
+.db-nav button[aria-current='true']{background:#ffffff1f;color:white;font-weight:700}
+.db-nav svg{width:17px;height:17px;flex:none}
+.db-rail-foot{margin-top:auto;display:flex;flex-direction:column;gap:10px;border-top:1px solid #ffffff24;padding-top:18px;font-size:12px;color:#a8bdd8}
+.db-rail-foot b{color:white;font-size:13px}
+.db-signout{display:inline-flex;align-items:center;gap:8px;background:#ffffff14;border:1px solid #ffffff2e;color:white;padding:9px 12px;border-radius:var(--radius);cursor:pointer;font-size:12px}
+.db-signout:hover{background:#ffffff26}
+
+/* Werkblad */
+.db-main{padding:28px 34px 70px;min-width:0}
+.db-head{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:22px}
+.db-head h1{font-family:var(--display);font-weight:600;font-size:26px;margin:2px 0 4px}
+.db-head p{margin:0;color:var(--db-muted);font-size:13px}
+.db-head-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--db-muted)}
+.db-refresh{display:inline-flex;align-items:center;gap:7px;background:var(--db-panel);border:1px solid var(--db-line);border-radius:var(--radius);padding:9px 13px;cursor:pointer;font-size:12px;font-weight:700;color:var(--db-accent)}
+.db-refresh:hover{border-color:var(--db-accent)}
+.db-section{margin-bottom:34px;scroll-margin-top:20px}
+.db-section>h2{font-size:15px;margin:0 0 4px;letter-spacing:.01em}
+.db-section>p.db-lead{margin:0 0 14px;color:var(--db-muted);font-size:12px}
+
+.db-panel{background:var(--db-panel);border:1px solid var(--db-line);border-radius:var(--radius-card);padding:20px}
+.db-panel>h3{font-size:13px;margin:0 0 2px}
+.db-panel>p.db-note{margin:0 0 14px;color:var(--db-muted);font-size:11px}
+.db-grid{display:grid;gap:14px}
+.db-grid.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.db-grid.cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.db-grid.cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.db-grid.split{grid-template-columns:1.6fr 1fr}
+@media(max-width:1180px){.db-app{grid-template-columns:1fr}.db-rail{position:static;height:auto}.db-grid.cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}.db-grid.split,.db-grid.cols-3{grid-template-columns:1fr}}
+
+/* Kerncijfers: één getal per tegel, zonder decoratie. */
+.db-tile{background:var(--db-panel);border:1px solid var(--db-line);border-radius:var(--radius-card);padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.db-tile small{color:var(--db-muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em}
+.db-tile b{font-size:27px;font-weight:700;line-height:1.1;font-variant-numeric:tabular-nums}
+.db-tile span{font-size:11px;color:var(--db-muted)}
+.db-tile-live b{color:var(--db-good)}
+
+/* Staafdiagram: één reeks, één tint, waarde bij aanwijzen. */
+.db-bars{display:flex;align-items:stretch;gap:3px;height:150px;padding-top:20px}
+.db-bars>div{flex:1;display:flex;align-items:flex-end;min-width:0;cursor:default}
+.db-bar{position:relative;width:100%;background:var(--db-bar);border-radius:4px 4px 0 0;min-height:2px;transition:background var(--motion-base) var(--ease)}
+.db-bars>div:hover .db-bar{background:var(--db-bar-strong)}
+.db-bar-value{position:absolute;bottom:100%;left:0;right:0;text-align:center;font-size:10px;color:var(--db-muted);font-variant-numeric:tabular-nums;padding-bottom:3px}
+.db-ticks{display:flex;gap:3px;border-top:1px solid var(--db-line);padding-top:7px}
+.db-ticks>span{flex:1;text-align:center;font-size:9px;color:var(--db-muted);min-width:0;overflow:hidden;white-space:nowrap}
+.db-axis{display:flex;justify-content:space-between;padding-top:9px;font-size:10px;color:var(--db-muted)}
+
+/* Liggende staven voor ranglijsten. */
+.db-rank{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px}
+.db-rank li{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:12px}
+.db-rank span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.db-rank b{font-variant-numeric:tabular-nums;font-weight:700}
+.db-rank i{grid-column:1/-1;height:6px;border-radius:3px;background:var(--db-bar);display:block}
+.db-rank li:nth-child(n+2) i{background:#8badd6}
+
+/* Tabellen */
+.db-table{width:100%;border-collapse:collapse;font-size:12px}
+.db-table th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--db-muted);padding:0 10px 9px;border-bottom:1px solid var(--db-line);white-space:nowrap}
+.db-table td{padding:11px 10px;border-bottom:1px solid var(--db-line);vertical-align:top}
+.db-table tr:last-child td{border-bottom:0}
+.db-table td b{display:block}
+.db-table td small{color:var(--db-muted)}
+.db-table .db-num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.db-scroll{overflow-x:auto}
+.db-empty{color:var(--db-muted);font-size:12px;margin:8px 0 0}
+
+/* Status: altijd een woord en een teken, nooit alleen kleur. */
+.db-status{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;white-space:nowrap}
+.db-status svg{width:14px;height:14px}
+.db-status.is-good{color:var(--db-good)}
+.db-status.is-wait{color:#9a6700}
+.db-status.is-bad{color:var(--db-critical)}
+.db-status.is-off{color:var(--db-muted)}
+
+/* Formulieren */
+.db-form{display:grid;gap:14px}
+.db-form.cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.db-field{display:grid;gap:5px;font-size:11px;font-weight:700}
+.db-field.full{grid-column:1/-1}
+.db-field input,.db-field select,.db-field textarea{border:1px solid #b9c5d2;border-radius:var(--radius);padding:9px 11px;font-size:13px;font-weight:400;background:white;min-width:0}
+.db-field input:focus,.db-field select:focus,.db-field textarea:focus{outline:2px solid var(--db-accent);outline-offset:-1px}
+.db-field small{font-weight:400;color:var(--db-muted);font-size:10px}
+.db-check{display:flex;align-items:flex-start;gap:9px;font-size:12px;font-weight:400;grid-column:1/-1}
+.db-check input{margin-top:2px}
+.db-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center;grid-column:1/-1}
+.db-button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:var(--radius);padding:10px 15px;font-size:12px;font-weight:700;cursor:pointer;background:var(--db-accent);color:white}
+.db-button:hover{background:var(--deep-blue)}
+.db-button.ghost{background:white;color:var(--db-accent);border:1px solid var(--db-line)}
+.db-button.ghost:hover{border-color:var(--db-accent);background:var(--blue-50)}
+.db-button.danger{background:white;color:var(--db-critical);border:1px solid #e6c3c3}
+.db-button[disabled]{opacity:.55;cursor:progress}
+.db-message{grid-column:1/-1;font-size:12px;border-radius:var(--radius);padding:10px 12px;background:var(--blue-50);border:1px solid #cfe2f2}
+.db-message.is-bad{background:#fdf2f2;border-color:#f0cfcf;color:#8d2323}
+.db-message.is-good{background:var(--green-50);border-color:#cfe9cf;color:var(--green-darker)}
+.db-hint{font-size:11px;color:var(--db-muted);line-height:1.6}
+.db-key{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;background:var(--db-surface);border:1px solid var(--db-line);border-radius:var(--radius);padding:3px 7px}
+.db-inline-select{border:1px solid #b9c5d2;border-radius:var(--radius);padding:5px 7px;font-size:11px;background:white}
+
+/* Aanmeldscherm */
+.db-login{min-height:100vh;display:grid;place-items:center;background:var(--navy);padding:24px}
+.db-login form,.db-login .db-login-card{background:white;border-radius:var(--radius-card);padding:34px;width:min(430px,100%);display:grid;gap:13px;box-shadow:var(--shadow-strong)}
+.db-login h1{font-family:var(--display);font-weight:600;font-size:23px;margin:0}
+.db-login p{margin:0;color:var(--db-muted);font-size:12px;line-height:1.6}
+.db-login label{display:grid;gap:5px;font-size:11px;font-weight:700}
+.db-login input{border:1px solid #b9c5d2;border-radius:var(--radius);padding:11px;font-size:14px;font-weight:400}
+
+/* Producten: importeren, prijzen en de productlijst. */
+.db-form>.full{grid-column:1/-1}
+.db-import{display:flex;flex-wrap:wrap;gap:9px}
+.db-import input{flex:1 1 320px;border:1px solid #b9c5d2;border-radius:var(--radius);padding:10px 12px;font-size:13px;min-width:0}
+.db-import input:focus{outline:2px solid var(--db-accent);outline-offset:-1px}
+.db-button svg{width:15px;height:15px}
+.db-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.db-panel-head h3{font-size:13px;margin:0 0 2px}
+.db-panel-head .db-note{margin:0 0 14px;color:var(--db-muted);font-size:11px}
+.db-search{border:1px solid #b9c5d2;border-radius:var(--radius);padding:8px 11px;font-size:12px;min-width:220px}
+.db-product-head{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--db-line)}
+.db-product-head img,.db-product-noimg{width:64px;height:64px;object-fit:contain;border:1px solid var(--db-line);border-radius:var(--radius);background:white;display:grid;place-items:center;color:var(--db-muted);flex:none}
+.db-product-head b{display:block;font-size:14px}
+.db-product-head small{color:var(--db-muted);font-size:11px}
+.db-product-head a{color:var(--db-accent)}
+.db-photos{display:grid;gap:8px;font-size:12px;font-weight:600}
+.db-photos small{display:block;font-weight:400;color:var(--db-muted);font-size:11px;margin-top:2px}
+.db-photos ul{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.db-photos li{position:relative;width:64px;height:64px;border:1px solid var(--db-line);border-radius:var(--radius);background:white}
+.db-photos li.is-main{border-color:var(--db-accent);box-shadow:0 0 0 1px var(--db-accent)}
+.db-photos img{width:100%;height:100%;object-fit:contain;padding:4px}
+.db-photos button{position:absolute;top:-7px;right:-7px;width:20px;height:20px;border-radius:50%;border:1px solid var(--db-line);background:white;color:var(--db-muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.db-photos button:hover{color:#c0392b;border-color:#c0392b}
+.db-photos button svg{width:12px;height:12px}
+.db-price-box{background:var(--db-surface);border:1px solid var(--db-line);border-radius:var(--radius-card);padding:16px}
+.db-price-box h4{margin:0 0 2px;font-size:13px}
+.db-price-box .db-note{margin:0 0 12px;color:var(--db-muted);font-size:11px}
+.db-price-input{display:flex;align-items:stretch;border:1px solid #b9c5d2;border-radius:var(--radius);background:white;overflow:hidden}
+.db-price-input:focus-within{outline:2px solid var(--db-accent);outline-offset:-1px}
+.db-price-input i,.db-price-input em{display:grid;place-items:center;padding:0 10px;font-style:normal;font-weight:400;color:var(--db-muted);background:var(--db-surface);font-size:12px}
+.db-price-field .db-price-input input{border:0;flex:1;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;outline:0}
+.db-price-ex{font-size:11px!important;color:var(--db-muted)}
+.db-price-ex b{color:var(--db-ink)}
+.db-deal-line{margin:12px 0 0;font-size:12px;color:var(--db-muted)}
+.db-deal-line.is-good{color:var(--green-darker)}
+.db-deal-line.is-bad{color:var(--db-critical)}
+.db-spec-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-top:12px;max-height:420px;overflow:auto;border:1px solid var(--db-line);border-radius:var(--radius);padding:12px}
+.db-spec-list h5{margin:0 0 4px;font-size:12px}
+.db-spec-list .db-table td{padding:6px 8px}
+.db-spec-list .db-table td:first-child{color:var(--db-muted);width:45%}
+.db-products td{vertical-align:middle}
+.db-products td small{display:block}
+.db-thumb{width:56px}
+.db-thumb img{width:48px;height:48px;object-fit:contain;display:block}
+.db-thumb svg{width:22px;height:22px;color:var(--db-muted)}
+.db-row-actions{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end}
+.db-row-actions .db-button{padding:7px 10px;font-size:11px;text-decoration:none}
+.db-price-row td{background:var(--db-surface)}
+.db-quick-price{padding:6px 0}
+@media(max-width:900px){.db-form.cols-2,.db-spec-list{grid-template-columns:1fr}}
+.db-link{border:0;background:none;padding:0;font:inherit;font-weight:700;color:var(--db-accent);text-decoration:underline;cursor:pointer}
+
+/* Uitvoeringen (kleur, opslag) met een eigen prijs per regel. */
+.db-variants{display:grid;gap:8px}
+.db-variants h4{margin:0}
+.db-variants h4 small{font-weight:400;color:var(--db-muted);font-size:11px;margin-left:6px}
+.db-variant-table td{vertical-align:middle}
+.db-variant-table tr.is-own td{background:var(--db-soft)}
+.db-variant-table .db-num small{display:block;color:var(--db-muted);font-size:11px}
+.db-variant-price{width:96px;padding:6px 8px;border:1px solid var(--db-line);border-radius:var(--radius);text-align:right;font:inherit}
+.db-variant-price:focus{outline:2px solid var(--db-accent);outline-offset:1px}

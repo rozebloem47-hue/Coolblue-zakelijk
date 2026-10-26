@@ -1,0 +1,216 @@
+/* Productpagina naar het voorbeeld van coolblue.nl: titel bovenaan, links een
+   grote fotogalerij met miniaturen, rechts pluspunten en de koopkaart. Daaronder
+   een ankerbalk, de productinformatie en de specificaties. Op mobiel veeg je door
+   de foto's en staat onderin een koopbalk. */
+.pdp{padding-bottom:10px;--pdp-sticky-top:calc(var(--header-bar) + var(--header-rail) + 14px)}
+.pdp-missing{padding:70px 20px 90px;max-width:620px}
+.pdp-missing p{color:var(--muted);margin:10px 0 22px;line-height:1.7}
+
+.pdp-trail{display:flex;align-items:center;flex-wrap:wrap;gap:5px;padding-top:16px;font-size:11px;color:var(--muted)}
+.pdp-trail svg{width:12px;height:12px;flex:none;color:var(--grey-600)}
+.pdp-trail a:hover{color:var(--factblue);text-decoration:underline}
+.pdp-trail span[aria-current]{color:var(--ink);font-weight:700}
+
+/* Bovenste deel: titel over de volle breedte, galerij links, koopkolom rechts. */
+.pdp-top{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);grid-template-areas:"head head" "visual buy";column-gap:40px;row-gap:18px;padding-top:18px;padding-bottom:10px;align-items:start}
+.pdp-head{grid-area:head}
+.pdp-head h1{font-size:25px;margin:6px 0 8px;line-height:1.25}
+.pdp-head-meta{display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;font-size:11px;color:var(--muted)}
+.pdp-visual{grid-area:visual;position:relative;min-width:0}
+.pdp-deal{position:absolute;z-index:3;left:0;top:16px;background:var(--orange);color:white;font-size:11px;font-weight:700;padding:6px 12px;border-radius:0 var(--radius) var(--radius) 0;pointer-events:none}
+
+/* Galerij: een veegbare strook met één foto per keer. */
+.gallery-stage{position:relative;border:1px solid var(--line-soft);border-radius:var(--radius-card);background:white;overflow:hidden}
+.gallery-stage>.product-visual{height:460px}
+.gallery-stage>.product-visual>svg{width:150px;height:150px}
+.gallery-track{list-style:none;margin:0;padding:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.gallery-track::-webkit-scrollbar{display:none}
+.gallery-track li{flex:0 0 100%;scroll-snap-align:center;scroll-snap-stop:always}
+.gallery-track button{display:block;width:100%;height:500px;padding:28px 56px;border:0;background:white;cursor:zoom-in}
+.gallery-track img{width:100%;height:100%;object-fit:contain}
+.gallery-arrow{position:absolute;z-index:2;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid var(--line);background:white;color:var(--factblue);display:grid;place-items:center;cursor:pointer;box-shadow:var(--shadow-subtle);transition:opacity var(--motion-fast),background-color var(--motion-fast)}
+.gallery-arrow:hover{background:var(--blue-50)}
+.gallery-arrow:disabled{opacity:0;pointer-events:none}
+.gallery-arrow svg{width:20px;height:20px}
+.gallery-arrow.is-prev{left:10px}
+.gallery-arrow.is-next{right:10px}
+.gallery-count{position:absolute;z-index:2;left:12px;bottom:12px;background:rgba(20,49,92,.78);color:white;font-size:11px;font-weight:700;padding:3px 9px;border-radius:var(--radius-full);font-variant-numeric:tabular-nums}
+.gallery-expand{position:absolute;z-index:2;right:12px;bottom:12px;width:34px;height:34px;border-radius:var(--radius);border:1px solid var(--line);background:white;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.gallery-expand:hover{color:var(--factblue)}
+.gallery-expand svg{width:16px;height:16px}
+.gallery-dots{display:none}
+
+.gallery-thumbs{list-style:none;margin:10px 0 0;padding:0;display:flex;gap:8px;flex-wrap:wrap}
+.gallery-thumbs button{position:relative;display:block;width:76px;height:76px;padding:6px;border:1px solid var(--line-soft);border-radius:var(--radius);background:white;cursor:pointer;overflow:hidden;transition:border-color var(--motion-fast)}
+.gallery-thumbs button:hover{border-color:var(--grey-600)}
+.gallery-thumbs button.is-active{border-color:var(--factblue);box-shadow:inset 0 0 0 1px var(--factblue)}
+.gallery-thumbs img{width:100%;height:100%;object-fit:contain}
+.gallery-more span{position:absolute;inset:0;display:grid;place-items:center;background:rgba(255,255,255,.82);color:var(--factblue);font-weight:700;font-size:15px}
+
+/* Schermvullende weergave van alle foto's. */
+.lightbox{position:fixed;inset:0;z-index:400;background:white;display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.lightbox-bar{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line-soft);font-size:13px}
+.lightbox-bar span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700}
+.lightbox-bar b{color:var(--muted);font-weight:400;font-variant-numeric:tabular-nums}
+.lightbox-bar button{width:40px;height:40px;border:0;border-radius:var(--radius);background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.lightbox-bar button:hover{background:var(--grey)}
+.lightbox-bar svg{width:22px;height:22px}
+.lightbox-stage{position:relative;display:flex;align-items:center;justify-content:center;padding:24px 76px;min-height:0;overflow:hidden;touch-action:pan-y}
+.lightbox-stage img{width:100%;height:100%;min-height:0;object-fit:contain}
+.lightbox-thumbs{list-style:none;margin:0;padding:12px 20px 16px;display:flex;gap:8px;overflow-x:auto;justify-content:safe center;border-top:1px solid var(--line-soft)}
+.lightbox-thumbs button{display:block;width:64px;height:64px;padding:5px;border:1px solid var(--line-soft);border-radius:var(--radius);background:white;cursor:pointer;flex:none}
+.lightbox-thumbs button.is-active{border-color:var(--factblue);box-shadow:inset 0 0 0 1px var(--factblue)}
+.lightbox-thumbs img{width:100%;height:100%;object-fit:contain}
+
+/* Koopkolom: pluspunten bovenaan, dan de prijs en de knop. */
+.pdp-buy{grid-area:buy;position:sticky;top:var(--pdp-sticky-top)}
+.pdp-pros{list-style:none;padding:0;margin:0 0 16px}
+.pdp-pros li{display:flex;gap:8px;margin:0 0 8px;line-height:1.5;font-size:13px}
+.pdp-pros svg,.pdp-story li svg{width:16px;height:16px;color:var(--green);flex:none;margin-top:2px;stroke-width:3}
+.pdp-buy-box{border:1px solid var(--line);border-radius:var(--radius-card);padding:20px;background:white;box-shadow:var(--shadow-subtle)}
+.pdp-price strong{font-size:30px}
+.pdp-vat{font-size:11px;color:var(--muted);line-height:1.6;margin:12px 0 14px;border-bottom:1px solid var(--line-soft);padding-bottom:14px}
+.pdp-stock{display:flex;align-items:center;gap:6px;color:var(--green);font-weight:700;font-size:12px}
+.pdp-stock svg,.pdp-delivery svg{width:15px;height:15px;flex:none}
+.pdp-delivery{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);margin-top:6px}
+.pdp-amount{display:flex;align-items:center;justify-content:space-between;margin:16px 0 12px;font-size:12px;font-weight:700}
+.pdp-stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.pdp-stepper button{width:36px;height:36px;border:0;background:white;color:var(--factblue);cursor:pointer;display:grid;place-items:center}
+.pdp-stepper button:hover{background:var(--blue-50)}
+.pdp-stepper svg{width:15px;height:15px}
+.pdp-stepper output{min-width:38px;text-align:center;font-variant-numeric:tabular-nums;border-left:1px solid var(--line);border-right:1px solid var(--line);height:36px;line-height:36px}
+.pdp-add{width:100%}
+.pdp-added{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--green-darker);margin:10px 0 0}
+.pdp-added svg{width:14px;height:14px}
+.pdp-added a{color:var(--factblue);font-weight:700;text-decoration:underline}
+.pdp-usps{list-style:none;padding:0 4px;margin:14px 0 0;font-size:11px}
+.pdp-usps li{display:flex;gap:8px;margin:9px 0;color:var(--muted);line-height:1.5}
+.pdp-usps svg{width:15px;height:15px;color:var(--factblue);flex:none}
+
+/* Ankerbalk over de volle breedte, net als de tabs op Coolblue. */
+.pdp-anchors{border-top:1px solid var(--line-soft);border-bottom:1px solid var(--line-soft);margin-top:30px;background:white}
+.pdp-anchors .wrap{display:flex;gap:26px;overflow-x:auto;scrollbar-width:none;font-size:13px;font-weight:700}
+.pdp-anchors .wrap::-webkit-scrollbar{display:none}
+.pdp-anchors a{color:var(--ink);padding:14px 0;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-1px}
+.pdp-anchors a:hover{color:var(--factblue);border-bottom-color:var(--factblue)}
+
+.pdp-block{padding-top:44px;scroll-margin-top:var(--pdp-sticky-top)}
+.pdp-block>h2{font-family:var(--display);font-weight:500;font-size:22px;margin:0 0 6px}
+.pdp-lead{color:var(--muted);margin:0 0 18px;font-size:12px}
+.pdp-block .pdp-grid{grid-template-columns:repeat(3,1fr);margin-top:6px}
+
+/* Productinformatie: omschrijving en pluspunten links, kerngegevens rechts. */
+.pdp-info{display:grid;grid-template-columns:minmax(0,1.45fr) minmax(320px,1fr);column-gap:40px;align-items:start}
+.pdp-info>h2{grid-column:1/-1;margin-bottom:16px}
+.pdp-story h3{font-size:15px;margin:0 0 8px}
+.pdp-story p{line-height:1.8;color:var(--ink);margin:0 0 14px;max-width:72ch}
+.pdp-story p+h3,.pdp-story ul+h3{margin-top:24px}
+.pdp-story ul{list-style:none;padding:0;margin:0}
+.pdp-story li{display:flex;gap:8px;margin:8px 0;line-height:1.5}
+.pdp-info-aside{display:grid;gap:14px}
+.pdp-info-card{border:1px solid var(--line-soft);border-radius:var(--radius-card);padding:18px 20px;background:white}
+.pdp-info-card h3,.pdp-story-aside h3{font-size:13px;margin:0 0 10px}
+.pdp-quick{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);border-radius:var(--radius);margin:0 0 12px;overflow:hidden}
+.pdp-quick>div{background:white;padding:10px 12px}
+.pdp-quick dt{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.pdp-quick dd{margin:3px 0 0;font-weight:700;font-size:12px}
+.pdp-jump{display:inline-flex;align-items:center;gap:6px;color:var(--factblue);font-weight:700;font-size:12px}
+.pdp-jump svg{width:15px;height:15px}
+.pdp-jump:hover{text-decoration:underline}
+.pdp-story-aside{background:var(--blue-50);border:1px solid #d9e7f4;border-radius:var(--radius-card);padding:20px}
+.pdp-story-aside p{font-size:12px;color:var(--muted);line-height:1.7;margin:0 0 14px}
+.pdp-story-aside table{width:100%;border-collapse:collapse;font-size:12px}
+.pdp-story-aside th{text-align:left;font-weight:400;color:var(--muted);padding:7px 0;border-bottom:1px solid #dfeaf5}
+.pdp-story-aside td{text-align:right;font-weight:700;padding:7px 0;border-bottom:1px solid #dfeaf5;font-variant-numeric:tabular-nums}
+.pdp-story-aside tr:last-child th,.pdp-story-aside tr:last-child td{border-bottom:0}
+
+/* Specificaties in twee kolommen op brede schermen. */
+.pdp-spec-groups{columns:2 420px;column-gap:40px}
+.pdp-spec-group{break-inside:avoid;margin:0 0 26px}
+.pdp-spec-group h3{font-size:14px;margin:0 0 8px;padding-bottom:6px;border-bottom:2px solid var(--line-soft)}
+.pdp-spec-table{width:100%;border-collapse:collapse;font-size:12px}
+.pdp-specs>.pdp-spec-table{max-width:820px}
+.pdp-spec-table th{text-align:left;width:45%;font-weight:400;color:var(--muted);padding:10px 12px;border-bottom:1px solid var(--line-soft);vertical-align:top}
+.pdp-spec-table td{padding:10px 12px;border-bottom:1px solid var(--line-soft);font-weight:700}
+.pdp-spec-table tr:nth-child(odd){background:var(--grey)}
+.pdp-spec-table tr:last-child th,.pdp-spec-table tr:last-child td{border-bottom:0}
+.pdp-more-specs{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:white;color:var(--factblue)}
+.pdp-more-specs:hover{background:var(--blue-50)}
+.pdp-more-specs svg{width:16px;height:16px}
+
+.pdp-advice{padding-bottom:56px}
+.pdp-advice-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.pdp-advice-grid article{border:1px solid var(--line-soft);border-radius:var(--radius-card);padding:20px;background:white}
+.pdp-advice-grid svg{width:24px;height:24px;color:var(--factblue)}
+.pdp-advice-grid h3{font-size:14px;margin:12px 0 6px}
+.pdp-advice-grid p{margin:0;color:var(--muted);line-height:1.7;font-size:12px}
+
+/* Mobiele koopbalk: alleen op kleine schermen, zodra de koopknop uit beeld is. */
+.pdp-sticky{display:none}
+
+@media(max-width:1180px){.pdp-block .pdp-grid{grid-template-columns:repeat(2,1fr)}.gallery-track button{height:440px}}
+@media(max-width:950px){.pdp-top,.pdp-info{column-gap:24px}.pdp-top{grid-template-columns:minmax(0,1.2fr) minmax(290px,1fr)}.pdp-info{grid-template-columns:1fr;row-gap:20px}.pdp-advice-grid{grid-template-columns:1fr}.gallery-track button{height:380px;padding:20px 48px}}
+
+/* Mobiel: alles onder elkaar, foto's over de volle breedte om doorheen te vegen. */
+@media(max-width:767px){
+  .pdp{padding-bottom:84px}
+  .pdp-trail{padding-top:10px}
+  .pdp-trail>a,.pdp-trail>svg,.pdp-trail>span[aria-current]{display:none}
+  .pdp-trail>a:nth-last-of-type(1){display:inline;font-weight:700;color:var(--factblue)}
+  .pdp-trail>a:nth-last-of-type(1)::before{content:'‹ ';font-weight:700}
+  .pdp-top{grid-template-columns:1fr;grid-template-areas:"head" "visual" "buy";row-gap:14px;padding-top:10px}
+  .pdp-head h1{font-size:20px}
+  .pdp-visual{margin:0 -20px}
+  .pdp-deal{top:10px}
+  .gallery-stage{border-radius:0;border-left:0;border-right:0}
+  .gallery-stage>.product-visual{height:300px}
+  .gallery-track button{height:min(88vw,420px);padding:18px 24px}
+  .gallery-arrow,.gallery-thumbs,.gallery-expand{display:none}
+  .gallery-count{left:auto;right:12px;bottom:10px}
+  .gallery-dots{list-style:none;margin:10px 0 0;padding:0;display:flex;justify-content:center;flex-wrap:wrap;gap:6px}
+  .gallery-dots li{width:7px;height:7px;border-radius:50%;background:var(--line);transition:background-color var(--motion-fast),transform var(--motion-fast)}
+  .gallery-dots li.is-active{background:var(--factblue);transform:scale(1.25)}
+  .pdp-buy{position:static}
+  .pdp-buy-box{padding:16px;box-shadow:none}
+  .lightbox-stage{padding:12px}
+  .lightbox .gallery-arrow{display:none}
+  .pdp-anchors{margin-top:22px}
+  .pdp-anchors .wrap{gap:20px}
+  .pdp-block{padding-top:32px}
+  .pdp-spec-groups{columns:1}
+  .pdp-spec-table th{width:48%;padding:9px 10px}
+  .pdp-spec-table td{padding:9px 10px}
+  .pdp-more-specs{width:100%;justify-content:center}
+  .pdp-sticky{display:flex;align-items:center;justify-content:space-between;gap:12px;position:fixed;z-index:150;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom));background:white;border-top:1px solid var(--line);box-shadow:0 -6px 18px rgba(20,49,92,.1);transform:translateY(110%);transition:transform var(--motion-base) var(--ease)}
+  .pdp-sticky.is-shown{transform:none}
+  .pdp-sticky strong{display:block;font-size:18px;font-variant-numeric:tabular-nums}
+  .pdp-sticky small{font-size:11px;color:var(--muted)}
+  .pdp-sticky .button{display:inline-flex;align-items:center;gap:8px;white-space:nowrap}
+  .pdp-sticky svg{width:17px;height:17px}
+}
+@media(max-width:600px){.pdp-quick{grid-template-columns:1fr}.pdp-block .pdp-grid{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.gallery-track{scroll-behavior:auto}.pdp-sticky{transition:none}}
+
+/* Keuzes voor kleur en opslag in de koopkolom. De gekozen uitvoering bepaalt prijs, foto's en naam. */
+.pdp-variants{display:grid;gap:14px;margin-bottom:16px}
+.pdp-variant-group{border:0;margin:0;padding:0;min-width:0}
+.pdp-variant-group legend{padding:0;margin-bottom:8px;font-size:12px;color:var(--muted)}
+.pdp-variant-group legend b{color:var(--ink)}
+.pdp-variant-options{display:flex;flex-wrap:wrap;gap:8px}
+.pdp-variant{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:74px;padding:8px 12px;border:1px solid var(--line);border-radius:var(--radius);background:white;color:var(--ink);cursor:pointer;text-align:center;transition:border-color var(--motion-fast) var(--ease),box-shadow var(--motion-fast) var(--ease)}
+.pdp-variant:hover{border-color:var(--blue)}
+.pdp-variant:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.pdp-variant.is-active{border-color:var(--blue);box-shadow:inset 0 0 0 1px var(--blue);background:var(--blue-50)}
+.pdp-variant.is-other{border-style:dashed;color:var(--muted)}
+.pdp-variant img{width:40px;height:40px;object-fit:contain}
+.pdp-variant-name{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700}
+.pdp-variant-name svg{width:13px;height:13px;color:var(--blue)}
+.pdp-variant-price b{display:block;font-size:12px}
+.pdp-variant-price small{display:block;font-size:10px;color:var(--muted)}
+.is-choice .pdp-variant{min-width:108px}
+.pdp-variant-select{position:relative;display:grid;gap:6px;min-width:0}
+.pdp-variant-select>span{font-size:13px;font-weight:700;color:var(--ink)}
+.pdp-variant-select select{width:100%;min-height:44px;padding:0 38px 0 12px;border:1px solid var(--line);border-radius:var(--radius);background:white;color:var(--ink);font:inherit;font-size:13px;appearance:none;-webkit-appearance:none;cursor:pointer}
+.pdp-variant-select select:hover{border-color:var(--blue)}
+.pdp-variant-select select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.pdp-variant-select svg{position:absolute;right:12px;bottom:13px;width:18px;height:18px;color:var(--muted);pointer-events:none}
