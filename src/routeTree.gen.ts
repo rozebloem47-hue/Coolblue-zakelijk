@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ZoekenRouteImport } from './routes/zoeken'
 import { Route as MerkenRouteImport } from './routes/merken'
 import { Route as CheckoutRouteImport } from './routes/checkout'
+import { Route as BedanktRouteImport } from './routes/bedankt'
 import { Route as AppleIphone18RouteImport } from './routes/apple-iphone-18'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -33,6 +34,11 @@ const MerkenRoute = MerkenRouteImport.update({
 const CheckoutRoute = CheckoutRouteImport.update({
   id: '/checkout',
   path: '/checkout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BedanktRoute = BedanktRouteImport.update({
+  id: '/bedankt',
+  path: '/bedankt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppleIphone18Route = AppleIphone18RouteImport.update({
@@ -77,6 +83,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apple-iphone-18': typeof AppleIphone18Route
+  '/bedankt': typeof BedanktRoute
   '/checkout': typeof CheckoutRoute
   '/merken': typeof MerkenRoute
   '/zoeken': typeof ZoekenRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apple-iphone-18': typeof AppleIphone18Route
+  '/bedankt': typeof BedanktRoute
   '/checkout': typeof CheckoutRoute
   '/merken': typeof MerkenRoute
   '/zoeken': typeof ZoekenRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/apple-iphone-18': typeof AppleIphone18Route
+  '/bedankt': typeof BedanktRoute
   '/checkout': typeof CheckoutRoute
   '/merken': typeof MerkenRoute
   '/zoeken': typeof ZoekenRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apple-iphone-18'
+    | '/bedankt'
     | '/checkout'
     | '/merken'
     | '/zoeken'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apple-iphone-18'
+    | '/bedankt'
     | '/checkout'
     | '/merken'
     | '/zoeken'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/apple-iphone-18'
+    | '/bedankt'
     | '/checkout'
     | '/merken'
     | '/zoeken'
@@ -153,6 +165,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AppleIphone18Route: typeof AppleIphone18Route
+  BedanktRoute: typeof BedanktRoute
   CheckoutRoute: typeof CheckoutRoute
   MerkenRoute: typeof MerkenRoute
   ZoekenRoute: typeof ZoekenRoute
@@ -183,6 +196,13 @@ declare module '@tanstack/react-router' {
       path: '/checkout'
       fullPath: '/checkout'
       preLoaderRoute: typeof CheckoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/bedankt': {
+      id: '/bedankt'
+      path: '/bedankt'
+      fullPath: '/bedankt'
+      preLoaderRoute: typeof BedanktRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/apple-iphone-18': {
@@ -241,6 +261,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AppleIphone18Route: AppleIphone18Route,
+  BedanktRoute: BedanktRoute,
   CheckoutRoute: CheckoutRoute,
   MerkenRoute: MerkenRoute,
   ZoekenRoute: ZoekenRoute,

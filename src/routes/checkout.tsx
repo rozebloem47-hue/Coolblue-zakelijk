@@ -6,16 +6,17 @@ import{photoForProduct}from'@/data/media'
 import{useCatalog}from'@/lib/shop-products'
 import{ProductVisual}from'@/components/ProductVisual'
 import{useCart}from'@/lib/cart-context'
+import{rememberPaymentLink}from'@/lib/payment'
 
 export const Route=createFileRoute('/checkout')({
   head:()=>({meta:[
     {title:'Bestelling afronden | Coolblue Zakelijk'},
-    {name:'description',content:`Rond je zakelijke bestelling af. Je rekent af op factuur en krijgt ${businessDiscountPercent} ondernemerskorting op je hele bestelling.`},
+    {name:'description',content:`Rond je zakelijke bestelling af. Je betaalt veilig via bunq en krijgt ${businessDiscountPercent} ondernemerskorting op je hele bestelling.`},
   ]}),
   component:Checkout,
 })
 
-type Confirmation={orderNumber:string;totals:{subtotal:number;discount:number;total:number;vatAmount:number};paymentTermDays:number;invoice:{status:string;number?:string|null;pdfUrl?:string|null;error?:string|null}}
+type Confirmation={orderNumber:string;paymentUrl?:string;totals:{subtotal:number;discount:number;total:number;vatAmount:number};paymentTermDays:number;invoice:{status:string;number?:string|null;pdfUrl?:string|null;error?:string|null}}
 
 const fields=['companyName','kvk','vatNumber','reference','firstName','lastName','email','phone','street','houseNumber','postalCode','city','notes'] as const
 type FieldName=typeof fields[number]
@@ -61,8 +62,16 @@ function Checkout(){
       })
       const result=await response.json().catch(()=>null)
       if(!response.ok||!result?.ok){setError(result?.error??'Het afrekenen lukte niet. Probeer het nog eens of bel ons.');return}
-      setDone(result as Confirmation)
       clear()
+      // Betalen gaat via de bunq.me-pagina van de winkel: daar staat het bedrag al
+      // klaar met het ordernummer als beschrijving.
+      if(result.paymentUrl){
+        rememberPaymentLink(result.orderNumber,result.paymentUrl)
+        window.location.href=result.paymentUrl
+        return
+      }
+      // Zonder link staat de bestelling er wel; de klant betaalt dan op factuur.
+      setDone(result as Confirmation)
     }catch{
       setError('We konden de bestelling niet versturen. Controleer je verbinding en probeer het opnieuw.')
     }finally{
@@ -143,15 +152,15 @@ function Checkout(){
         <section className="co-card co-payment">
           <h2>Betaalwijze</h2>
           <div className="co-payment-row">
-            <FileText/>
-            <div><b>Op factuur</b></div>
+            <ShieldCheck/>
+            <div><b>Direct betalen via bunq</b></div>
             <Check className="co-payment-check"/>
           </div>
-          <p className="co-hint">We maken je factuur automatisch aan via onze bankkoppeling, op naam van de bedrijfsgegevens die je hierboven invult.</p>
+          <p className="co-hint">Na het plaatsen ga je meteen naar de beveiligde betaalpagina van bunq, met het bedrag en je ordernummer al ingevuld. Daar kies je zelf iDEAL, Bancontact of creditcard. Je factuur met btw-specificatie maken we automatisch aan op naam van de bedrijfsgegevens hierboven.</p>
         </section>
 
         {error&&<p className="co-error"><AlertTriangle/> {error}</p>}
-        <button className="button primary co-submit" disabled={!lines.length||sending}>{sending?'Bestelling wordt verwerkt…':'Bestelling op factuur plaatsen'}</button>
+        <button className="button primary co-submit" disabled={!lines.length||sending}>{sending?'Bestelling wordt verwerkt…':'Bestellen en betalen'}</button>
       </form>
 
       <aside className="co-summary">
