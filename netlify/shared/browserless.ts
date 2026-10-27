@@ -113,10 +113,12 @@ export async function connectBrowserless(){
  * zien waarom het niet lukt. Een open sessie verbruikt tegoed, dus de browser
  * gaat altijd dicht.
  */
+export const idealLog:string[]=[]
 export async function resolveIdealUrl(startUrl:string,maxMs=8000):Promise<string|null>{
   const session:{browser?:Browser;page?:any}={}
   const begin=Date.now()
-  const log=(text:string)=>console.log(`[browserless +${Date.now()-begin}ms] ${text}`)
+       idealLog.length=0
+     const log=(text:string)=>{const line=`[browserless +${Date.now()-begin}ms] ${text}`;console.log(line);idealLog.push(line)}
   // Alleen adres en pad, nooit de rest van de link.
   const safe=(value:string)=>{try{const url=new URL(value);return url.hostname+url.pathname}catch{return 'onbekend'}}
   const work=async()=>{

@@ -17,7 +17,7 @@ import{businessDiscount,exVat,priced,type Product}from'../../src/data/products.j
 import{IMPORTED_ID_OFFSET,fromCatalogRow,isImportedId,type CatalogRow}from'../../src/data/imported-products.js'
 import{createInvoice,integrationSettings}from'../shared/finom.js'
 import{createBunqPaymentLink,idealPaymentUrl,recordBunqError}from'../shared/bunq.js'
-import{resolveIdealUrl}from'../shared/browserless.js'
+import{resolveIdealUrl,idealLog}from'../shared/browserless.js'
 
 type Line={productId:number;variant?:string;quantity:number}
 
@@ -168,6 +168,7 @@ export default async(req:Request)=>{
     paymentMethod:paymentUrl?'bunq':'factuur',
     paymentUrl,
     paymentTermDays:settings.paymentTermDays,
+    debug:idealLog,
     invoice,
   })
 }
