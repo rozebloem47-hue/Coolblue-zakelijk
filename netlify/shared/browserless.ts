@@ -114,7 +114,7 @@ export async function connectBrowserless(){
  * gaat altijd dicht.
  */
 export const idealLog:string[]=[]
-export async function resolveIdealUrl(startUrl:string,maxMs=12000):Promise<string|null>{
+export async function resolveIdealUrl(startUrl:string,maxMs=30000):Promise<string|null>{
   const session:{browser?:Browser;page?:any}={}
   const begin=Date.now()
        idealLog.length=0
