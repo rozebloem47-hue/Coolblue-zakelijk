@@ -106,13 +106,6 @@ export async function connectBrowserless(){
   return browser
 }
 
-
-/**
- * Opent de bunq.me-link in Browserless, wacht tot bunq doorverwijst naar iDEAL
- * en geeft die pagina terug. Lukt dat niet binnen de tijd, dan krijg je null
- * en blijft de gewone link gelden. Een open sessie verbruikt tegoed, dus de
- * browser gaat altijd dicht.
- */
 /**
  * Opent de bunq.me-link in Browserless, wacht tot bunq doorverwijst naar iDEAL
  * en geeft die pagina terug. Lukt dat niet binnen de tijd, dan krijg je null
@@ -150,15 +143,6 @@ export async function resolveIdealUrl(startUrl:string,maxMs=8000):Promise<string
       log('tekst op de pagina: '+String(content).replace(/\s+/g,' '))
     }
     return result
-  }finally{
-    await session.browser?.close().catch(()=>{})
-  }
-}
-  try{
-    return await Promise.race([
-      work().catch(()=>null),
-      new Promise<null>(resolve=>setTimeout(()=>resolve(null),maxMs)),
-    ])
   }finally{
     await session.browser?.close().catch(()=>{})
   }
