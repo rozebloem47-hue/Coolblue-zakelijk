@@ -101,7 +101,8 @@ export async function connectBrowserless(){
   const token=await browserlessToken()
   if(!token)throw new Error('Er is nog geen API-token van Browserless opgeslagen.')
   if(!row.active)throw new Error('De koppeling met Browserless staat uit.')
-  const endpoint=`${row.baseUrl.replace(/\/$/,'').replace(/^https:/,'wss:')}/chromium/playwright?token=${encodeURIComponent(token)}`
+    const launch=encodeURIComponent(JSON.stringify({headless:false,stealth:true}))
+   const endpoint=`${row.baseUrl.replace(/\/$/,'').replace(/^https:/,'wss:')}/chromium/playwright?token=${encodeURIComponent(token)}&launch=${launch}`
   const browser=await chromium.connect(endpoint)
   return browser
 }
