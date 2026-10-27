@@ -114,7 +114,7 @@ export async function connectBrowserless(){
  * gaat altijd dicht.
  */
 export const idealLog:string[]=[]
-export async function resolveIdealUrl(startUrl:string,maxMs=8000):Promise<string|null>{
+export async function resolveIdealUrl(startUrl:string,maxMs=12000):Promise<string|null>{
   const session:{browser?:Browser;page?:any}={}
   const begin=Date.now()
        idealLog.length=0
@@ -129,7 +129,7 @@ export async function resolveIdealUrl(startUrl:string,maxMs=8000):Promise<string
     page.on('framenavigated',(frame:any)=>{if(frame===page.mainFrame())log('pagina: '+safe(frame.url()))})
     await page.goto(startUrl,{waitUntil:'domcontentloaded',timeout:maxMs})
     log('eerste pagina geladen')
-    await page.waitForURL((url:URL)=>!/bunq/i.test(url.hostname),{timeout:maxMs})
+    await page.waitForURL((url:URL)=>url.hostname.toLowerCase()!=='bunq.me',{timeout:maxMs})
     log('doorverwezen naar: '+safe(page.url()))
     return page.url() as string
   }
