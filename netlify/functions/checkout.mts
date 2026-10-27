@@ -160,6 +160,7 @@ export default async(req:Request)=>{
       paymentUrl=direct
       console.log('iDEAL-link via Browserless, host:',new URL(direct).hostname)
     }
+       await db.update(orders).set({notes:(idealLog.length?idealLog.join(' | '):'geen meldingen van Browserless').slice(0,400)}).where(eq(orders.id,order.id)).catch(()=>{})
 
   return Response.json({
     ok:true,
