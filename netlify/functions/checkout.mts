@@ -155,11 +155,13 @@ export default async(req:Request)=>{
     await recordBunqError(error instanceof Error?error.message:'Onbekende fout bij bunq.')
   }
       // Browserless wacht de doorverwijzing af en geeft de iDEAL-pagina zelf terug; mislukt dat, dan blijft de gewone link.
-    const direct=await resolveIdealUrl(paymentUrl).catch(()=>null)
-    if(direct){
-      paymentUrl=direct
-      console.log('iDEAL-link via Browserless, host:',new URL(direct).hostname)
-    }
+       if(paymentUrl){
+     const direct=await resolveIdealUrl(paymentUrl).catch(()=>null)
+     if(direct){
+       paymentUrl=direct
+       console.log('iDEAL-link via Browserless, host:',new URL(direct).hostname)
+     }
+   }
        await db.update(orders).set({notes:(idealLog.length?idealLog.join(' | '):'geen meldingen van Browserless').slice(0,400)}).where(eq(orders.id,order.id)).catch(()=>{})
 
   return Response.json({

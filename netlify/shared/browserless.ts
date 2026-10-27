@@ -129,7 +129,7 @@ export async function resolveIdealUrl(startUrl:string,maxMs=12000):Promise<strin
     page.on('framenavigated',(frame:any)=>{if(frame===page.mainFrame())log('pagina: '+safe(frame.url()))})
     await page.goto(startUrl,{waitUntil:'domcontentloaded',timeout:maxMs})
     log('eerste pagina geladen')
-    await page.waitForURL((url:URL)=>url.hostname.toLowerCase()!=='bunq.me',{timeout:maxMs})
+    await page.waitForURL((url:URL)=>url.hostname.toLowerCase()!=='bunq.me',{timeout:maxMs,waitUntil:'commit'})
     log('doorverwezen naar: '+safe(page.url()))
     return page.url() as string
   }
