@@ -1,0 +1,12 @@
+{
+  "name": "bunq-ideal-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "xvfb-run -a node server.mjs",
+    "start:local": "node server.mjs"
+  },
+  "dependencies": {
+    "playwright": "^1.49.0"
+  }
+}
