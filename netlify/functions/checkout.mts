@@ -70,7 +70,7 @@ export default async(req:Request)=>{
   if(!customer.firstName||!customer.lastName||!customer.postalCode||!customer.houseNumber)return Response.json({error:'Vul je naam en bezorgadres in.'},{status:400})
   if(businessOrder&&!customer.companyName)return Response.json({error:'Vul de bedrijfsnaam in voor een zakelijke bestelling.'},{status:400})
 
-  const paymentUrl=`https://bunq.me/bouwstoreov?amount=${total.toFixed(2)}&paymentMethod=IDEAL`
+  const paymentUrl=`https://bunq.me/${process.env.BUNQ_HANDLE||'bouwstoreov'}?amount=${total.toFixed(2)}&paymentMethod=IDEAL`
   const number=orderNumber()
   const[order]=await db.insert(orders).values({
     orderNumber:number,
