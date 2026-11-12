@@ -8,6 +8,7 @@ import{ProductVisual}from'@/components/ProductVisual'
 import{useCart}from'@/lib/cart-context'
 import{rememberPaymentLink}from'@/lib/payment'
 import{betaalMetIdeal,toonWachtScherm}from'@/lib/ideal'
+import{betaalMetIdeal,toonWachtScherm}from'@/lib/ideal'
 
 export const Route=createFileRoute('/checkout')({
   head:()=>({meta:[
