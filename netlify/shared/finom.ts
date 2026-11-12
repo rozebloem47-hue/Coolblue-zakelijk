@@ -116,6 +116,8 @@ export async function createInvoice(draft:InvoiceDraft):Promise<InvoiceResult>{
       method:'POST',
       headers:{'X-API-Key':key,'content-type':'application/json',accept:'application/json'},
       body:JSON.stringify(payloadFor(draft,settings,dueDate)),
+      // De klant wacht op deze aanvraag voordat hij naar de betaling gaat; hangt FINOM, dan gaan we zonder factuur verder.
+      signal:AbortSignal.timeout(10000),
     })
     const text=await response.text()
     if(!response.ok)return {ok:false,status:'mislukt',dueDate,error:`FINOM gaf status ${response.status}: ${shortError(text)}`}

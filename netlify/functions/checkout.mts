@@ -106,9 +106,10 @@ export default async(req:Request)=>{
     unitPrice:String(money(line.price)),
   })))
 
-  const settings=await integrationSettings()
+  // De order staat vast; een fout bij het factureren mag de klant niet van de betaling afhouden.
+  const settings=await integrationSettings().catch(error=>{console.error('FINOM-instellingen laden mislukt',error);return null})
   let invoice:{status:string;number?:string|null;pdfUrl?:string|null;error?:string|null}={status:'niet aangemaakt'}
-  if(settings.autoCreate&&settings.active){
+  if(settings?.autoCreate&&settings.active)try{
     const result=await createInvoice({
       orderNumber:number,
       customer,
@@ -130,6 +131,9 @@ export default async(req:Request)=>{
     }).returning()
     invoice={status:saved.status,number:saved.number,pdfUrl:saved.pdfUrl,error:saved.error}
     await db.update(orders).set({status:result.ok?'gefactureerd':'factuur mislukt'}).where(eq(orders.id,order.id))
+  }catch(error){
+    console.error(`Factuur voor ${number} aanmaken mislukt`,error)
+    invoice={status:'mislukt',error:'De factuur kon niet worden aangemaakt.'}
   }
 
   return Response.json({
@@ -138,7 +142,7 @@ export default async(req:Request)=>{
     totals:{subtotal,discount,total,vatAmount},
     paymentMethod:'bunq',
     paymentUrl,
-    paymentTermDays:settings.paymentTermDays,
+    paymentTermDays:settings?.paymentTermDays??14,
     invoice,
   })
 }

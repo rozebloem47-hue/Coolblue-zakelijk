@@ -53,6 +53,10 @@ export const Route = createRootRoute({
     ],
     links: [
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      // Via HeadContent, zodat server en browser de <head> in dezelfde volgorde opbouwen.
+      { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+      { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossOrigin: 'anonymous' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Zilla+Slab:wght@400;500;600&display=swap' },
     ],
   }),
   // Producten uit de beheeromgeving; een minuut vers is ruim genoeg voor de winkel.
@@ -72,9 +76,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
   return (
     <html lang="nl">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Zilla+Slab:wght@400;500;600&display=swap" />
         <HeadContent />
       </head>
       <body>
