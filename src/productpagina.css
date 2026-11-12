@@ -214,3 +214,12 @@
 .pdp-variant-select select:hover{border-color:var(--blue)}
 .pdp-variant-select select:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .pdp-variant-select svg{position:absolute;right:12px;bottom:13px;width:18px;height:18px;color:var(--muted);pointer-events:none}
+
+/* Recente iPhone Duo-bestellingen, naast de voorraad in de koopkaart. */
+.duo-order-ticker{display:flex;align-items:center;gap:10px;margin:12px 0;padding:12px;background:var(--blue-50);border:1px solid var(--line-soft);border-radius:var(--radius);color:var(--ink)}
+.duo-order-ticker>svg{width:19px;height:19px;flex:none;color:var(--blue)}
+.duo-order-ticker p{flex:1;min-width:0;margin:0;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.duo-order-ticker button{display:grid;place-items:center;flex:none;width:36px;height:36px;border:1px solid var(--line);border-radius:var(--radius);background:var(--white);color:var(--blue);cursor:pointer}
+.duo-order-ticker button:hover{background:var(--blue-100)}
+.duo-order-ticker button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.duo-order-ticker button svg{width:16px;height:16px}
