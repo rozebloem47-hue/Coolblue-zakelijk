@@ -5,7 +5,7 @@ ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 ENV NO_SANDBOX=1
 ENV PORT=8787
 
-RUN apt-get update && apt-get install -y --no-install-recommends xvfb \
+RUN apt-get update && apt-get install -y --no-install-recommends xvfb xauth \
  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -14,4 +14,5 @@ RUN npm install --omit=dev
 COPY bunq-worker/server.mjs ./
 
 EXPOSE 8787
-CMD ["xvfb-run", "-a", "--server-args=-screen 0 1366x900x24", "node", "server.mjs"]
+
+CMD ["sh","-c","echo '--- scherm starten ---'; Xvfb :99 -screen 0 1366x900x24 & export DISPLAY=:99; sleep 1; echo '--- scherm klaar, worker starten ---'; exec node server.mjs"]
