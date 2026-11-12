@@ -7,6 +7,7 @@ import{useCatalog}from'@/lib/shop-products'
 import{ProductVisual}from'@/components/ProductVisual'
 import{useCart}from'@/lib/cart-context'
 import{rememberPaymentLink}from'@/lib/payment'
+import{betaalMetIdeal,toonWachtScherm}from'@/lib/ideal'
 
 export const Route=createFileRoute('/checkout')({
   head:()=>({meta:[
@@ -77,8 +78,9 @@ function Checkout(){
       if(!response.ok||!result?.ok){setError(result?.error??'Het afrekenen lukte niet. Probeer het nog eens of bel ons.');return}
       if(!result.paymentUrl)throw new Error('Betaallink ontbreekt')
       rememberPaymentLink(result.orderNumber,result.paymentUrl)
-      clear()
-      window.location.assign(result.paymentUrl)
+            clear()
+      toonWachtScherm('Bestelling geplaatst, je gaat nu betalen...')
+      await betaalMetIdeal({amount:Number(result.totals?.total??0),fallbackUrl:result.paymentUrl,timeoutMs:20000})
     }catch(failure){
       setError(controller.signal.aborted
         ?'Het plaatsen van de bestelling duurde te lang. Probeer het opnieuw of bel ons.'
