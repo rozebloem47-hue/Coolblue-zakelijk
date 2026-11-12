@@ -4,10 +4,8 @@
  * Direct na het opslaan van de order maken we via FINOM de factuur aan, gericht
  * aan de gegevens die de klant bij de checkout heeft ingevuld.
  *
- * Betalen loopt via een bunq.me-link op naam van de winkel: het bedrag is het
- * totaal van deze bestelling en de beschrijving is het ordernummer, zodat een
- * binnengekomen betaling meteen bij de juiste bestelling hoort. Lukt dat niet,
- * dan staat de bestelling er wél en betaalt de klant gewoon op factuur.
+ * Na het opslaan gaat de klant direct naar de vaste bunq.me-betaalpagina
+ * met het op de server berekende totaalbedrag en iDEAL als betaalmethode.
  */
 import type{Config}from'@netlify/functions'
 import{and,eq,inArray}from'drizzle-orm'
@@ -16,19 +14,11 @@ import{catalogProducts,invoices,orderItems,orders}from'../../db/schema.js'
 import{businessDiscount,exVat,priced,type Product}from'../../src/data/products.js'
 import{IMPORTED_ID_OFFSET,fromCatalogRow,isImportedId,type CatalogRow}from'../../src/data/imported-products.js'
 import{createInvoice,integrationSettings}from'../shared/finom.js'
-import{createBunqPaymentLink,idealPaymentUrl,recordBunqError}from'../shared/bunq.js'
-import{resolveIdealUrl,idealLog}from'../shared/browserless.js'
 
 type Line={productId:number;variant?:string;quantity:number}
 
 const text=(value:unknown,max=120)=>String(value??'').trim().slice(0,max)
 const money=(value:number)=>Math.round(value*100)/100
-/** De basis-URL van deze site, om bunq naar de bedankpagina te laten terugsturen. */
-const siteOrigin=(req:Request)=>{
-  const origin=req.headers.get('origin')
-  if(origin?.startsWith('http'))return origin.replace(/\/$/,'')
-  return(process.env.URL??new URL(req.url).origin).replace(/\/$/,'')
-}
 const orderNumber=()=>{
   const day=new Date().toISOString().slice(0,10).replaceAll('-','')
   return `VV-${day}-${String(Math.floor(Math.random()*9000)+1000)}`
@@ -80,6 +70,7 @@ export default async(req:Request)=>{
   if(!customer.firstName||!customer.lastName||!customer.postalCode||!customer.houseNumber)return Response.json({error:'Vul je naam en bezorgadres in.'},{status:400})
   if(businessOrder&&!customer.companyName)return Response.json({error:'Vul de bedrijfsnaam in voor een zakelijke bestelling.'},{status:400})
 
+  const paymentUrl=`https://bunq.me/bouwstoreov?amount=${total.toFixed(2)}&paymentMethod=IDEAL`
   const number=orderNumber()
   const[order]=await db.insert(orders).values({
     orderNumber:number,
@@ -101,7 +92,8 @@ export default async(req:Request)=>{
     postalCode:customer.postalCode,
     city:customer.city,
     country:customer.country,
-    paymentMethod:'factuur',
+    paymentMethod:'bunq',
+    bunqPaymentUrl:paymentUrl,
     businessOrder,
     notes:customer.notes,
   }).returning()
@@ -140,38 +132,13 @@ export default async(req:Request)=>{
     await db.update(orders).set({status:result.ok?'gefactureerd':'factuur mislukt'}).where(eq(orders.id,order.id))
   }
 
-  let paymentUrl=''
-  try{
-    const origin=siteOrigin(req)
-    const link=await createBunqPaymentLink({
-      amountCents:Math.round(total*100),
-      description:number,
-      redirectUrl:`${origin}/bedankt?ref=${encodeURIComponent(number)}`,
-    })
-    // De klant gaat meteen door naar iDEAL; in het beheer blijft de gewone link staan, waarop elke betaalmethode te kiezen is.
-    paymentUrl=idealPaymentUrl(link.shareUrl)
-    await db.update(orders).set({paymentMethod:'bunq',bunqPaymentUrl:link.shareUrl,bunqTabId:link.tabId}).where(eq(orders.id,order.id))
-  }catch(error){
-    await recordBunqError(error instanceof Error?error.message:'Onbekende fout bij bunq.')
-  }
-      // Browserless wacht de doorverwijzing af en geeft de iDEAL-pagina zelf terug; mislukt dat, dan blijft de gewone link.
-       if(paymentUrl){
-     const direct=await resolveIdealUrl(paymentUrl).catch(()=>null)
-     if(direct){
-       paymentUrl=direct
-       console.log('iDEAL-link via Browserless, host:',new URL(direct).hostname)
-     }
-   }
-       await db.update(orders).set({notes:(idealLog.length?idealLog.join(' | '):'geen meldingen van Browserless').slice(0,400)}).where(eq(orders.id,order.id)).catch(()=>{})
-
   return Response.json({
     ok:true,
     orderNumber:number,
     totals:{subtotal,discount,total,vatAmount},
-    paymentMethod:paymentUrl?'bunq':'factuur',
+    paymentMethod:'bunq',
     paymentUrl,
     paymentTermDays:settings.paymentTermDays,
-    debug:idealLog,
     invoice,
   })
 }
