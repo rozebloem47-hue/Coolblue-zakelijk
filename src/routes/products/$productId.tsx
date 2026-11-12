@@ -7,6 +7,7 @@ import{useCatalog}from'@/lib/shop-products'
 import{Price}from'@/components/Price'
 import{ProductCard}from'@/components/ProductCard'
 import{ProductGallery}from'@/components/ProductGallery'
+import{DuoOrderTicker}from'@/components/DuoOrderTicker'
 import{Rating}from'@/components/Rating'
 import{VariantPicker}from'@/components/VariantPicker'
 import{HelpZone}from'@/components/HomepageInfo'
@@ -120,6 +121,7 @@ function ProductPage(){
           <p className="pdp-vat">Je betaalt {money(product.price)} inclusief btw, dat is {money(exVat(product.price))} exclusief 21% btw. Met je {businessDiscountPercent} ondernemerskorting rekenen we {money(businessPrice(product.price))} inclusief btw af.</p>
           <p className="temp-offer"><Clock/> <span><b>Tijdelijke ondernemersactie.</b> Deze korting geldt maar voor een beperkte periode, dus wacht niet te lang.</span></p>
           <div className="pdp-stock"><Check/> {product.stock}</div>
+          {product.slug==='apple-iphone-duo-986126'&&<DuoOrderTicker/>}
           <div className="pdp-delivery"><Truck/> {product.delivery??'Morgen bezorgd, ook op zakelijke adressen'}</div>
           <div className="pdp-amount">
             <span>Aantal</span>
