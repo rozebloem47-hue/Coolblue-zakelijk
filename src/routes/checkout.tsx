@@ -1,6 +1,6 @@
 import{createFileRoute,Link}from'@tanstack/react-router'
 import{useMemo,useState}from'react'
-import{AlertTriangle,ArrowRight,Check,FileText,Minus,Percent,Plus,ShieldCheck,Truck}from'lucide-react'
+import{AlertTriangle,Check,FileText,Minus,Percent,Plus,ShieldCheck,Truck}from'lucide-react'
 import{businessDiscount,businessDiscountPercent,exVat,money,priced,type Product}from'@/data/products'
 import{photoForProduct}from'@/data/media'
 import{useCatalog}from'@/lib/shop-products'
@@ -16,8 +16,6 @@ export const Route=createFileRoute('/checkout')({
   component:Checkout,
 })
 
-type Confirmation={orderNumber:string;paymentUrl?:string;totals:{subtotal:number;discount:number;total:number;vatAmount:number};paymentTermDays:number;invoice:{status:string;number?:string|null;pdfUrl?:string|null;error?:string|null}}
-
 const fields=['companyName','kvk','vatNumber','reference','firstName','lastName','email','phone','street','houseNumber','postalCode','city','notes'] as const
 type FieldName=typeof fields[number]
 const empty=Object.fromEntries(fields.map(field=>[field,'']))as Record<FieldName,string>
@@ -28,7 +26,6 @@ function Checkout(){
   const[business,setBusiness]=useState(true)
   const[sending,setSending]=useState(false)
   const[error,setError]=useState('')
-  const[done,setDone]=useState<Confirmation|null>(null)
   const set=(field:FieldName)=>(event:React.ChangeEvent<HTMLInputElement|HTMLTextAreaElement>)=>setForm(current=>({...current,[field]:event.target.value}))
 
   // Het mandje bewaart losse regels; gelijke artikelen in dezelfde uitvoering tellen we samen tot één orderregel.
@@ -62,52 +59,16 @@ function Checkout(){
       })
       const result=await response.json().catch(()=>null)
       if(!response.ok||!result?.ok){setError(result?.error??'Het afrekenen lukte niet. Probeer het nog eens of bel ons.');return}
+      if(!result.paymentUrl)throw new Error('Betaallink ontbreekt')
+      rememberPaymentLink(result.orderNumber,result.paymentUrl)
       clear()
-      // Betalen gaat via de bunq.me-pagina van de winkel: daar staat het bedrag al
-      // klaar met het ordernummer als beschrijving.
-      if(result.paymentUrl){
-        rememberPaymentLink(result.orderNumber,result.paymentUrl)
-        window.location.href=result.paymentUrl
-        return
-      }
-      // Zonder link staat de bestelling er wel; de klant betaalt dan op factuur.
-      setDone(result as Confirmation)
+      window.location.assign(result.paymentUrl)
     }catch{
       setError('We konden de bestelling niet versturen. Controleer je verbinding en probeer het opnieuw.')
     }finally{
       setSending(false)
     }
   }
-
-  if(done)return <div className="wrap co-done">
-    <span className="kicker">Bestelling ontvangen</span>
-    <h1>Bedankt, je bestelling staat op factuur.</h1>
-    <p className="co-done-lead">We hebben je bestelling met ordernummer <b>{done.orderNumber}</b> in behandeling. De factuur gaat naar de gegevens die je hebt ingevuld en je hebt {done.paymentTermDays} dagen om te betalen.</p>
-    <div className="co-done-grid">
-      <article>
-        <h2>Bedragen</h2>
-        <table className="co-table">
-          <tbody>
-            <tr><th>Subtotaal incl. btw</th><td>{money(done.totals.subtotal)}</td></tr>
-            {done.totals.discount>0&&<tr><th>Tijdelijke ondernemerskorting ({businessDiscountPercent})</th><td>−{money(done.totals.discount)}</td></tr>}
-            <tr><th>Totaal incl. btw</th><td><b>{money(done.totals.total)}</b></td></tr>
-            <tr><th>Waarvan 21% btw</th><td>{money(done.totals.vatAmount)}</td></tr>
-            <tr><th>Totaal excl. btw</th><td>{money(done.totals.total-done.totals.vatAmount)}</td></tr>
-          </tbody>
-        </table>
-      </article>
-      <article>
-        <h2>Je factuur</h2>
-        {done.invoice.status==='niet aangemaakt'
-          ?<p className="co-invoice-note"><FileText/> Je factuur wordt met de hand opgemaakt en per e-mail verstuurd.</p>
-          :done.invoice.error
-            ?<p className="co-invoice-note is-bad"><AlertTriangle/> De factuur is nog niet klaar. Onze administratie pakt dit op en stuurt je de factuur per e-mail.</p>
-            :<p className="co-invoice-note is-good"><Check/> Factuur {done.invoice.number??'is aangemaakt'} staat klaar.{done.invoice.pdfUrl?<> <a href={done.invoice.pdfUrl} rel="noreferrer">Download de pdf</a>.</>:null}</p>}
-        <p className="co-invoice-note"><Truck/> Zodra we je bestelling inpakken, krijg je een bericht met het bezorgmoment.</p>
-      </article>
-    </div>
-    <Link to="/" className="button primary">Verder winkelen<ArrowRight/></Link>
-  </div>
 
   return <div className="wrap co">
     <h1>Bestelling afronden</h1>
@@ -153,10 +114,10 @@ function Checkout(){
           <h2>Betaalwijze</h2>
           <div className="co-payment-row">
             <ShieldCheck/>
-            <div><b>Direct betalen via bunq</b></div>
+            <div><b>Betalen met iDEAL via bunq</b></div>
             <Check className="co-payment-check"/>
           </div>
-          <p className="co-hint">Na het plaatsen ga je meteen naar de beveiligde betaalpagina van bunq, met het bedrag en je ordernummer al ingevuld. Daar kies je zelf iDEAL, Bancontact of creditcard. Je factuur met btw-specificatie maken we automatisch aan op naam van de bedrijfsgegevens hierboven.</p>
+          <p className="co-hint">Na het plaatsen ga je meteen naar de beveiligde betaalpagina van bunq, met het totaalbedrag al ingevuld en iDEAL als betaalmethode. Je factuur met btw-specificatie maken we automatisch aan op naam van de bedrijfsgegevens hierboven.</p>
         </section>
 
         {error&&<p className="co-error"><AlertTriangle/> {error}</p>}

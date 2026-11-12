@@ -3,7 +3,7 @@ import{useEffect,useState}from'react'
 import{ArrowRight,Check,FileText,Truck}from'lucide-react'
 import{recallPaymentLink}from'@/lib/payment'
 
-/** Hierheen stuurt bunq de klant terug na de betaling op de bunq.me-pagina. */
+/** Overzicht van de geplaatste bestelling met een link om verder te betalen. */
 export const Route=createFileRoute('/bedankt')({
   validateSearch:(search:Record<string,unknown>)=>({ref:typeof search.ref==='string'?search.ref.slice(0,40):''}),
   head:()=>({meta:[
@@ -23,12 +23,12 @@ function Thanks(){
   return <div className="wrap co-done">
     <span className="kicker">Bestelling ontvangen</span>
     <h1>Bedankt voor je bestelling.</h1>
-    <p className="co-done-lead">{ref?<>We hebben je bestelling met ordernummer <b>{ref}</b> in behandeling.</>:'We hebben je bestelling in behandeling.'} Zodra je betaling via bunq binnen is, pakken we hem in.</p>
+    <p className="co-done-lead">{ref?<>We hebben je bestelling met ordernummer <b>{ref}</b> in behandeling.</>:'We hebben je bestelling in behandeling.'}</p>
     <div className="co-done-grid">
       <article>
         <h2>Je betaling</h2>
         <p className="co-invoice-note is-good"><Check/> Heb je op de bunq-pagina betaald? Dan hoef je niets meer te doen.</p>
-        {paymentUrl&&<p className="co-invoice-note">Nog niet betaald of de betaalpagina weggeklikt? <a href={paymentUrl} rel="noreferrer">Ga terug naar de betaling</a> — het bedrag en je ordernummer staan er al bij.</p>}
+        {paymentUrl&&<p className="co-invoice-note">Nog niet betaald of de betaalpagina weggeklikt? <a href={paymentUrl} rel="noreferrer">Ga terug naar de betaling</a> — het bedrag staat al ingevuld.</p>}
       </article>
       <article>
         <h2>Je factuur</h2>
