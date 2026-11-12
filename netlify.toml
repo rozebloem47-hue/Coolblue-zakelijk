@@ -1,16 +1,7 @@
 [build]
-command = "vite build"
-publish = "dist/client"
-
+  command = "vite build"
+  publish = "dist/client"
 [dev]
-command = "npm run dev"
-targetPort = 3000
-port = 8888
-
-[functions]
-timeout = 26
-node_bundler = "esbuild"
-external_node_modules = ["playwright-core"]
-
-[[plugins]]
-package = "./plugins"
+  command = "npm run dev"
+  targetPort = 3000
+  port = 8888
