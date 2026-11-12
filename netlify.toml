@@ -1,3 +1,7 @@
+[functions]
+  timeout = 26
+  node_bundler = "esbuild"
+  external_node_modules = ["playwright-core"]
 [build]
   command = "vite build"
   publish = "dist/client"
