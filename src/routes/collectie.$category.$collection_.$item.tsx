@@ -134,7 +134,7 @@ function ItemPage(){
       <ul>
         <li><Check/>Prijzen inclusief én exclusief btw</li>
         <li><Check/>Bezorgd op je zakelijke adres</li>
-        <li><Check/>Op rekening bestellen</li>
+        <li><Check/>Veilig betalen met iDEAL</li>
         <li><Check/>{businessDiscountPercent} ondernemerskorting</li>
       </ul>
     </div></section>

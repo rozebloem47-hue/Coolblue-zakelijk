@@ -1,4 +1,4 @@
-/* Afrekenen: alleen op factuur, met de bedragen altijd inclusief én exclusief btw. */
+/* Afrekenen: online betalen met iDEAL, met de bedragen altijd inclusief én exclusief btw. */
 .co,.co-done{padding-top:34px;padding-bottom:70px}
 .co>h1,.co-done>h1{font-size:28px;margin:8px 0 6px}
 .co-lead,.co-done-lead{color:var(--muted);max-width:640px;line-height:1.7;margin:0 0 26px}
