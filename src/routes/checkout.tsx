@@ -1,6 +1,6 @@
 import{createFileRoute,Link}from'@tanstack/react-router'
 import{useMemo,useState}from'react'
-import{AlertTriangle,Check,FileText,Minus,Percent,Plus,ShieldCheck,Truck}from'lucide-react'
+import{AlertTriangle,FileText,Minus,Percent,Plus,ShieldCheck,Truck}from'lucide-react'
 import{businessDiscount,businessDiscountPercent,exVat,money,priced,type Product}from'@/data/products'
 import{photoForProduct}from'@/data/media'
 import{useCatalog}from'@/lib/shop-products'
@@ -13,7 +13,7 @@ import{betaalMetIdeal,toonWachtScherm}from'@/lib/ideal'
 export const Route=createFileRoute('/checkout')({
   head:()=>({meta:[
     {title:'Bestelling afronden | Coolblue Zakelijk'},
-    {name:'description',content:`Rond je zakelijke bestelling af. Je betaalt veilig via bunq en krijgt ${businessDiscountPercent} ondernemerskorting op je hele bestelling.`},
+    {name:'description',content:`Rond je zakelijke bestelling af. Je betaalt veilig met IDEAL en krijgt ${businessDiscountPercent} ondernemerskorting op je hele bestelling.`},
   ]}),
   component:Checkout,
 })
@@ -131,16 +131,6 @@ function Checkout(){
             <label className="co-field">Plaats<input name="city" value={form.city} onChange={set('city')} autoComplete="address-level2"/></label>
             <label className="co-field full">Opmerking voor de bezorger of administratie<textarea name="notes" value={form.notes} onChange={set('notes')} rows={3}/></label>
           </div>
-        </section>
-
-        <section className="co-card co-payment">
-          <h2>Betaalwijze</h2>
-          <div className="co-payment-row">
-            <ShieldCheck/>
-            <div><b>Betalen met iDEAL via bunq</b></div>
-            <Check className="co-payment-check"/>
-          </div>
-          <p className="co-hint">Na het plaatsen ga je meteen naar de beveiligde betaalpagina van bunq, met het totaalbedrag al ingevuld en iDEAL als betaalmethode. Je factuur met btw-specificatie maken we automatisch aan op naam van de bedrijfsgegevens hierboven.</p>
         </section>
 
         {error&&<p className="co-error"><AlertTriangle/> {error}</p>}
