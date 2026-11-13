@@ -2,7 +2,7 @@ import{accessoryFallback,accessoryRules}from'./catalog/accessories'
 
 /** Een specificatieregel op de productpagina: label en waarde. */
 export type SpecTuple = [label: string, value: string]
-export type Product = { id:number; slug:string; name:string; brand:string; category:string; subcategory:string; price:number; rating:number; reviews:number; stock:string; color:string; icon:string; bullets:string[]; description:string; series?:string; storage?:string; colorName?:string; pickup?:string; delivery?:string; tradeIn?:number; listPrice?:number; dealPercent?:number; specs?:SpecTuple[]; accessories?:string[]; specGroups?:{title:string;specs:SpecTuple[]}[]; imageId?:string; imageIds?:string[]; variantOptions?:VariantOption[]; variants?:ProductVariant[]; defaultVariant?:string }
+export type Product = { id:number; slug:string; name:string; brand:string; category:string; subcategory:string; price:number; rating:number; reviews:number; stock:string; color:string; icon:string; bullets:string[]; description:string; series?:string; storage?:string; colorName?:string; pickup?:string; delivery?:string; tradeIn?:number; listPrice?:number; dealPercent?:number; specs?:SpecTuple[]; accessories?:string[]; specGroups?:{title:string;specs:SpecTuple[]}[]; imageId?:string; imageIds?:string[]; variantOptions?:VariantOption[]; variants?:ProductVariant[]; defaultVariant?:string; standalone?:boolean }
 /** Een keuze op de productpagina (kleur, opslag) met alle waarden die de klant kan kiezen. */
 export type VariantOption={title:string;type:'color'|'choice';values:string[]}
 /** Eén uitvoering van een product met een eigen prijs inclusief btw en eigen foto's. */

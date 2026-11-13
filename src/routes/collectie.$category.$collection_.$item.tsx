@@ -9,7 +9,7 @@ import{ProductCard}from'@/components/ProductCard'
 import{HelpZone}from'@/components/HomepageInfo'
 import{useCatalog}from'@/lib/shop-products'
 import{useFilters}from'@/lib/use-filters'
-import{FilterFieldsets,FilterPanel,selectionCount,selectionLabel}from'@/components/ProductFilters'
+import{FilterFieldsets,FilterPanel,SortSelect,selectionCount,selectionLabel}from'@/components/ProductFilters'
 import{matchKey,matchPrice,newestIPhonesFirst}from'@/data/filters'
 
 const sorts=['Relevantie','Best beoordeeld','Prijs laag - hoog','Prijs hoog - laag']
@@ -57,8 +57,9 @@ function ItemPage(){
   const siblings=collection.items.filter(other=>other!==item)
   const photo=subjectImage(item,640)??brandImageFor(item,640)??collectionImageFor(collection.name,collection.items,category.slug,640)
 
-  return <>
-    <nav className="breadcrumbs wrap">
+  // Op mobiel staat de lijst bovenaan: titel, verwante onderwerpen en dan meteen de producten (zie .listing-page).
+  return <div className="listing-page">
+    <nav className="breadcrumbs wrap" aria-label="Kruimelpad">
       <Link to="/">Home</Link><ChevronRight/>
       <Link to="/categorie/$category" params={{category:category.slug}}>{category.name}</Link><ChevronRight/>
       <Link to="/collectie/$category/$collection" params={{category:category.slug,collection:collectionSlug(collection.name)}}>{collection.name}</Link><ChevronRight/>
@@ -98,7 +99,8 @@ function ItemPage(){
       </div>
       {!own.length&&pool.length>0&&<p className="item-note">We breiden het assortiment {item.toLowerCase()} nog uit. Dit is wat zakelijke klanten nu kiezen binnen {collection.name.toLowerCase()}.</p>}
       <div className="catalog-layout">
-        <FilterPanel className="model-filters" activeCount={selectionCount(filters.selection)}>
+        <FilterPanel className="model-filters" activeCount={selectionCount(filters.selection)} resultCount={shown.length}
+          toolbar={<><span className="filter-bar-count">{shown.length} {shown.length===1?'product':'producten'}</span><SortSelect value={sort} options={sorts} onChange={setSort}/></>}>
           <FilterFieldsets facets={filters.facets} selection={filters.selection} counts={filters.counts} onToggle={filters.toggle}/>
           <fieldset><legend>Meer uit {collection.name.toLowerCase()}</legend>{collection.items.map(other=><Link key={other} className={other===item?'filter-active':undefined} to="/collectie/$category/$collection/$item" params={{category:category.slug,collection:collectionSlug(collection.name),item:collectionSlug(other)}}>{other}</Link>)}</fieldset>
           <p className="filter-note">Alle prijzen staan inclusief én exclusief 21% btw. Je ontvangt altijd een btw-factuur en je {businessDiscountPercent} ondernemerskorting wordt in je mandje verrekend.</p>
@@ -140,5 +142,5 @@ function ItemPage(){
     </div></section>
 
     <HelpZone/>
-  </>
+  </div>
 }

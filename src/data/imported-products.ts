@@ -17,7 +17,7 @@ export type SpecGroup={title:string;specs:[string,string][]}
 export type StoredVariant={sku:string;name:string;values:Record<string,string>;price:string;listPrice:string|null;imageIds:string[];specs?:[string,string][]}
 
 /** Zoals een rij uit de database binnenkomt: bedragen als tekst, datums als datum of tekst. */
-export type CatalogRow={id:number;slug:string;name:string;brand:string;category:string;collection:string|null;subcategory:string;series:string|null;colorName:string|null;description:string;bullets:string[];specGroups:SpecGroup[];price:string|number;listPrice:string|number|null;imageId:string|null;imageIds?:string[]|null;sourceSku?:string|null;variantOptions?:VariantOption[]|null;variants?:StoredVariant[]|null;rating:string|number|null;reviews:number|null;stock:string|null;active:boolean}
+export type CatalogRow={id:number;slug:string;name:string;brand:string;category:string;collection:string|null;subcategory:string;series:string|null;colorName:string|null;description:string;bullets:string[];specGroups:SpecGroup[];price:string|number;listPrice:string|number|null;imageId:string|null;imageIds?:string[]|null;sourceSku?:string|null;variantOptions?:VariantOption[]|null;variants?:StoredVariant[]|null;rating:string|number|null;reviews:number|null;stock:string|null;active:boolean;fixedDeal?:boolean|null}
 
 const cents=(value:number)=>Math.round(value*100)/100
 
@@ -36,7 +36,8 @@ export const parseEuro=(value:unknown):number|null=>{
 export const fromCatalogRow=(row:CatalogRow):Product=>{
   const look=presentationFor(row.subcategory,row.name)
     // Tijdens de Early Black Friday-sale geldt op het hele assortiment een korting; de normale prijs wordt dan de doorgestreepte prijs.
-  const percent=isEarlyBlackFriday()?salePercentFor(row,cents(Number(row.price))):0
+  // Producten met een vaste actieprijs (`fixedDeal`) houden die prijs; daar komt geen campagnekorting overheen.
+  const percent=isEarlyBlackFriday()&&!row.fixedDeal?salePercentFor(row,cents(Number(row.price))):0
   const salePrice=(base:number,listed:number)=>percent?{price:saleOf(base,percent),was:base}:{price:base,was:listed}
   const{price,was}=salePrice(cents(Number(row.price)),row.listPrice==null?0:cents(Number(row.listPrice)))
   const deal=was>price?Math.round((1-price/was)*100):0
@@ -70,6 +71,17 @@ export const fromCatalogRow=(row:CatalogRow):Product=>{
     ...(row.imageIds&&row.imageIds.length>1?{imageIds:row.imageIds}:{}),
     ...(hasVariants?{variantOptions:row.variantOptions!,variants,defaultVariant}:{}),
   }
+}
+
+/**
+ * Staan de uitvoeringen van een keuzelijst ook als losse producten in de
+ * catalogus, dan markeren we die producten als `standalone`. Collecties,
+ * filters en zoeken tonen zo'n product alleen met zijn eigen uitvoering; de
+ * andere uitvoeringen hebben hun eigen kaart en blijven kiesbaar op de productpagina.
+ */
+export const markStandaloneVariants=(products:Product[])=>{
+  const owners=new Set(products.filter(product=>product.variants?.length).map(product=>product.defaultVariant))
+  return products.map(product=>product.variants?.some(variant=>variant.sku!==product.defaultVariant&&owners.has(variant.sku))?{...product,standalone:true}:product)
 }
 
 /** Een nette url-naam, met het bronnummer erachter zodat twee kleuren van hetzelfde model niet botsen. */
