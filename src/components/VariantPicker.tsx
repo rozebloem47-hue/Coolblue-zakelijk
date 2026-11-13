@@ -24,7 +24,12 @@ export function VariantPicker({product,variant,onPick}:{product:Product;variant:
   const colorTitle=options.find(option=>option.type==='color')?.title
   const specs=options.filter(option=>option.type!=='color')
   const sameColor=variants.filter(item=>!colorTitle||item.values[colorTitle]===variant.values[colorTitle])
-  const label=(item:ProductVariant)=>specs.map(option=>item.values[option.title]).filter(Boolean).join(' · ')||item.name
+  // Verschillen de uitvoeringen ook in model (zoals JURA E8 of C9), dan staat de naam van het model erbij.
+  const models=new Set(sameColor.map(item=>item.name.replace(/\s*\(.*\)$/,''))).size>1
+  const label=(item:ProductVariant)=>{
+    const values=specs.map(option=>item.values[option.title]).filter(Boolean).join(' · ')
+    return models&&values?`${item.name} · ${values}`:values||item.name
+  }
   return <div className="pdp-variants">
     {options.filter(option=>option.type==='color').map(option=>{
       const selected=variant.values[option.title]

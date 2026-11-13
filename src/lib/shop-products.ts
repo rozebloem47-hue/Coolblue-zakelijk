@@ -7,14 +7,14 @@ import{createServerFn}from'@tanstack/react-start'
 import{getRouteApi}from'@tanstack/react-router'
 import{useMemo}from'react'
 import type{Product}from'@/data/products'
-import{fromCatalogRow,type CatalogRow}from'@/data/imported-products'
+import{fromCatalogRow,markStandaloneVariants,type CatalogRow}from'@/data/imported-products'
 
 /** Actieve beheerproducten, nieuwste eerst. Zonder database (of bij een fout) blijft de winkel leeg in plaats van te crashen. */
 export const getShopProducts=createServerFn({method:'GET'}).handler(async():Promise<Product[]>=>{
   try{
     const[{db},{catalogProducts},{desc,eq}]=await Promise.all([import('../../db/index'),import('../../db/schema'),import('drizzle-orm')])
     const rows=await db.select().from(catalogProducts).where(eq(catalogProducts.active,true)).orderBy(desc(catalogProducts.createdAt))
-    return rows.map(row=>fromCatalogRow(row as CatalogRow))
+    return markStandaloneVariants(rows.map(row=>fromCatalogRow(row as CatalogRow)))
   }catch(error){
     console.error('Beheerproducten laden mislukt',error)
     return[]

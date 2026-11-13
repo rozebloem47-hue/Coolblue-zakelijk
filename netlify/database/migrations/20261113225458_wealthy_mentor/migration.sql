@@ -1,0 +1,1 @@
+ALTER TABLE "catalog_products" ADD COLUMN "fixed_deal" boolean DEFAULT false NOT NULL;

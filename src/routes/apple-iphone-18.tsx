@@ -7,7 +7,7 @@ import{matchKey,matchPrice}from'@/data/filters'
 import{useCatalog}from'@/lib/shop-products'
 import{useFilters}from'@/lib/use-filters'
 import{ProductCard}from'@/components/ProductCard'
-import{FilterFieldsets,FilterPanel,selectionCount,selectionLabel}from'@/components/ProductFilters'
+import{FilterFieldsets,FilterPanel,SortSelect,selectionCount,selectionLabel}from'@/components/ProductFilters'
 import{HelpZone}from'@/components/HomepageInfo'
 
 type Model='pro'|'pro-max'
@@ -64,7 +64,8 @@ function IPhone18Page(){
   const paragraphs=active?[active.key==='pro-max'?intro.max:intro.pro,intro.closing]:[intro.pro,intro.max,intro.closing]
   const title=active?`Apple ${active.name}`:'Apple iPhone 18 Pro en Pro Max'
 
-  return <>
+  // Op mobiel staat de lijst bovenaan: titel, modellen en dan meteen de toestellen (zie .listing-page).
+  return <div className="listing-page">
     <nav className="breadcrumbs wrap" aria-label="Kruimelpad">
       <Link to="/">Home</Link><ChevronRight/>
       <Link to="/categorie/$category" params={{category:'telefonie'}}>Telefonie</Link><ChevronRight/>
@@ -83,6 +84,9 @@ function IPhone18Page(){
 
     <header className="model-intro wrap">
       <h1>{title}</h1>
+    </header>
+
+    <section className="model-intro-body wrap" aria-label="Over de Apple iPhone 18">
       {paragraphs.slice(0,expanded?undefined:1).map(text=><p key={text}>{text}</p>)}
       <button type="button" className="model-more" aria-expanded={expanded} onClick={()=>setExpanded(!expanded)}>{expanded?'Minder weergeven':'Meer weergeven'}</button>
       <div className="model-accessories">
@@ -90,7 +94,7 @@ function IPhone18Page(){
         <Link to="/collectie/$category/$collection/$item" params={{category:'telefonie',collection:'iphone-accessoires',item:'iphone-screenprotectors'}}>iPhone 18 screenprotectors</Link>
         <Link to="/collectie/$category/$collection/$item" params={{category:'telefonie',collection:'iphone-accessoires',item:'iphone-opladers'}}>iPhone 18 opladers</Link>
       </div>
-    </header>
+    </section>
 
     <section className="service-strip wrap" aria-label="Onze servicebeloftes">
       <div><Truck/><span><b>Gratis bezorgd</b><small>Op een moment dat jou past</small></span></div>
@@ -106,7 +110,8 @@ function IPhone18Page(){
           <select aria-label="Sorteren" value={sort} onChange={event=>setSort(event.target.value)}>{sorts.map(option=><option key={option}>{option}</option>)}</select>
         </div>
         <div className="catalog-layout">
-          <FilterPanel className="model-filters" activeCount={selectionCount(filters.selection)+(model?1:0)}>
+          <FilterPanel className="model-filters" activeCount={selectionCount(filters.selection)+(model?1:0)} resultCount={shown.length}
+            toolbar={<><span className="filter-bar-count">{shown.length} {shown.length===1?'uitvoering':'uitvoeringen'}</span><SortSelect value={sort} options={sorts} onChange={setSort}/></>}>
             <fieldset>
               <legend>Model</legend>
               <Link to="/apple-iphone-18" search={{}} className={model?undefined:'filter-active'}>Alle iPhone 18’s ({range.length})</Link>
@@ -146,5 +151,5 @@ function IPhone18Page(){
     </section>
 
     <HelpZone/>
-  </>
+  </div>
 }

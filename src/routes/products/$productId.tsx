@@ -29,6 +29,12 @@ export const Route=createFileRoute('/products/$productId')({
   component:ProductPage,
 })
 
+/** Het losse product met deze uitvoering als standaard, uit dezelfde keuzelijst als het huidige product. */
+const siblingFor=(product:Product,all:Product[],sku:string)=>{
+  const family=new Set(product.variants?.map(variant=>variant.sku))
+  return all.find(item=>item.id!==product.id&&item.defaultVariant===sku&&item.variants?.length===family.size&&item.variants.every(variant=>family.has(variant.sku)))
+}
+
 /** De blokken in de ankernavigatie onder de foto's en de koopkaart, in de volgorde van Coolblue. */
 const anchors=[['productinformatie','Productinformatie'],['accessoires','Accessoires'],['specificaties','Specificaties'],['advies','Service en advies']] as const
 
@@ -53,7 +59,13 @@ function ProductPage(){
     imageId:variant.imageIds[0]??found.imageId,
     colorName:Object.entries(variant.values).find(([title])=>found.variantOptions?.find(option=>option.title===title)?.type==='color')?.[1]??found.colorName,
   }:found,[found,variant])
-  const pick=(sku:string)=>navigate({search:{uitvoering:sku},replace:true,resetScroll:false})
+  // Is de gekozen uitvoering een eigen product in de collectie, dan openen we de pagina van dat product.
+  // Zo staat elke uitvoering los in de collectie en blijft hij hier toch kiesbaar.
+  const pick=(sku:string)=>{
+    const own=found&&sku!==found.defaultVariant?siblingFor(found,all,sku):undefined
+    if(own)return navigate({to:'/products/$productId',params:{productId:own.slug},search:{},resetScroll:false})
+    return navigate({search:{uitvoering:sku},replace:true,resetScroll:false})
+  }
   const{add}=useCart()
   const[amount,setAmount]=useState(1)
   const[added,setAdded]=useState(false)

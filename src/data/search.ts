@@ -33,7 +33,7 @@ export const searchProducts=(products:Product[],query:string):Match[]=>{
   if(!terms.length)return[]
   const hits:{match:Match;score:number;order:number}[]=[]
   products.forEach((product,index)=>{
-    const options=product.variants?.length?[...product.variants].sort((a,b)=>Number(b.sku===product.defaultVariant)-Number(a.sku===product.defaultVariant)):[undefined]
+    const options=product.standalone?[product.variants?.find(variant=>variant.sku===product.defaultVariant)]:product.variants?.length?[...product.variants].sort((a,b)=>Number(b.sku===product.defaultVariant)-Number(a.sku===product.defaultVariant)):[undefined]
     options.forEach((variant,position)=>{
       const text=haystack(product,variant)
       if(!terms.every(term=>fits(text,term)))return

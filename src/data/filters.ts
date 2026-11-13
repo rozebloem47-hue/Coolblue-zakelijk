@@ -69,7 +69,8 @@ const order:Record<string,(a:string,b:string)=>number>={
 }
 
 /** Alle uitvoeringen van een product, of het product zelf. */
-const optionsOf=(product:Product)=>product.variants?.length?product.variants.map(variant=>({variant,values:valuesOf(product,variant)})):[{variant:undefined,values:valuesOf(product)}]
+// Een losse uitvoering (`standalone`) telt alleen met haar eigen variant; de andere uitvoeringen zijn eigen producten.
+const optionsOf=(product:Product)=>product.variants?.length?(product.standalone?product.variants.filter(variant=>variant.sku===product.defaultVariant):product.variants).map(variant=>({variant,values:valuesOf(product,variant)})):[{variant:undefined,values:valuesOf(product)}]
 
 /** Welke filters zinvol zijn voor deze producten: alleen met minstens twee verschillende waarden (aanbieding mag er één hebben). */
 export const facetsFor=(pool:Product[]):Facet[]=>{

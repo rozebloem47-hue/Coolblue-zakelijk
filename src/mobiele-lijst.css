@@ -1,0 +1,92 @@
+/*
+ * Productlijsten op mobiel, zoals de modelpagina van de iPhone 18 en de
+ * (sub)collecties. Je ziet meteen producten: een korte titel, een veegbare rij
+ * modellen, één vaste balk met filteren en sorteren en dan de lijst. Uitleg,
+ * servicebeloftes en advies staan onder de producten. Desktop blijft gelijk.
+ */
+
+/* Desktop: de mobiele onderdelen van het filterpaneel blijven verborgen. */
+.filter-bar-extra,.filter-close,.filter-sheet-foot{display:none}
+.model-intro-body{padding-bottom:28px}
+.listing-page .model-intro{padding-bottom:0}
+
+@media(max-width:600px){
+/* Volgorde: kruimel, titel, modellen, producten, daarna de rest. */
+.listing-page{display:flex;flex-direction:column}
+.listing-page>*{order:6}
+.listing-page>.breadcrumbs{order:1}
+.listing-page>.model-intro,.listing-page>.item-hero,.listing-page>.collection-page-hero{order:2}
+.listing-page>.model-strip,.listing-page>.collection-page-links{order:3}
+.listing-page>.catalog-zone{order:4}
+.listing-page>.model-intro-body{order:5;padding-top:28px}
+.listing-page>.service-strip{order:5;margin:0 16px 28px}
+
+/* Kruimelpad: alleen een terugknop naar het niveau erboven. */
+.listing-page>.breadcrumbs{height:auto;padding:10px 16px 0}
+.listing-page>.breadcrumbs>*{display:none}
+.listing-page>.breadcrumbs>a:nth-last-of-type(1){display:inline-flex;align-items:center;gap:4px;font-weight:700}
+.listing-page>.breadcrumbs>a:nth-last-of-type(1):before{content:'‹';font-size:18px;line-height:1}
+
+/* Titel zonder lange introductie erboven. */
+.listing-page .model-intro{padding:6px 16px 0}
+.listing-page .model-intro h1,.listing-page .collection-page-hero h1{margin:0 0 10px;font-size:22px}
+.listing-page>.collection-page-hero{padding:6px 0 0;background:none;border:0}
+.listing-page>.collection-page-hero>.wrap{padding:0 16px;display:block}
+.listing-page>.collection-page-hero .kicker,.listing-page>.collection-page-hero p,.listing-page>.collection-page-hero .collection-hero-media{display:none}
+
+/* Subcollectie: titel bovenaan, de uitleg van de blauwe kop onder de producten. */
+.listing-page>.item-hero,.listing-page>.item-hero>.wrap,.listing-page>.item-hero>.wrap>div:not(.item-hero-media){display:contents}
+.listing-page>.item-hero .kicker,.listing-page>.item-hero>.wrap>.item-hero-media{display:none}
+.listing-page>.item-hero h1{order:2;margin:6px 16px 10px;font-size:22px}
+.listing-page>.item-hero p{order:5;margin:0 16px 10px;font-size:13px}
+.listing-page>.item-hero p:first-of-type{margin-top:28px}
+.listing-page>.item-hero .item-hero-advice{order:5;margin:0 16px 28px}
+
+/* Modellen en onderwerpen op één regel om doorheen te vegen. */
+.listing-page>.model-strip{flex-wrap:nowrap;overflow-x:auto;padding:0 16px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.listing-page>.model-strip::-webkit-scrollbar,.listing-page>.collection-page-links>div::-webkit-scrollbar{display:none}
+.listing-page>.model-strip a{flex:none;padding:7px 14px;white-space:nowrap}
+.listing-page>.collection-page-links{padding:0 16px 10px}
+.listing-page>.collection-page-links h2{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.listing-page>.collection-page-links>div{display:flex;gap:8px;overflow-x:auto;border:0;scrollbar-width:none}
+.listing-page>.collection-page-links a{flex:none;min-height:0;padding:7px 14px;border:1px solid var(--line);border-radius:var(--radius-full);background:#fff;font-size:13px;white-space:nowrap}
+.listing-page>.collection-page-links a img,.listing-page>.collection-page-links a picture,.listing-page>.collection-page-links a svg{display:none}
+
+/* De productlijst begint direct, zonder dubbele titel. */
+.listing-page .catalog-zone{padding:0 0 40px}
+.listing-page .catalog-head{display:none}
+.listing-page .catalog-zone .catalog-layout{padding-top:0;gap:12px}
+.listing-page .item-note{margin:12px 0 0;font-size:12px}
+}
+
+/* Filteren en sorteren: één balk die onder de kop blijft staan, filters als paneel over het scherm. */
+@media(max-width:600px){
+.catalog-layout>.filters{position:sticky;top:calc(var(--header-bar) + 52px);z-index:20;margin:0 -20px;padding:8px 20px;background:var(--soft);border-bottom:1px solid var(--line-soft)}
+.catalog-layout>.filters.is-open{z-index:400}
+.filter-bar{display:flex;align-items:center;gap:8px}
+.filters .filter-bar .filter-toggle{width:auto;flex:none;min-height:40px;padding:0 14px}
+.filter-bar-extra{display:flex;align-items:center;gap:8px;flex:1;min-width:0;justify-content:flex-end}
+.filter-bar-count{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sort-select{display:block;flex:none}
+.sort-select>span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.sort-select select{height:40px;max-width:150px;padding:0 28px 0 10px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;color:var(--ink);font-weight:700}
+
+.filters .filter-body{display:none}
+.filters.is-open .filter-body{position:fixed;inset:0;z-index:400;display:flex;flex-direction:column;background:#fff}
+.filter-sheet-head{display:flex;align-items:center;justify-content:space-between;min-height:56px;padding:0 8px 0 16px;border-bottom:1px solid var(--line-soft)}
+.filter-sheet-head h3{margin:0;font-size:17px}
+.filter-close{display:grid;place-items:center;width:44px;height:44px;border:0;background:none;color:var(--ink);cursor:pointer}
+.filter-close svg{width:22px}
+.filter-sheet-content{flex:1;overflow-y:auto;padding:4px 16px 16px;overscroll-behavior:contain}
+.filter-sheet-content fieldset{margin:0;padding:14px 0;border:0;border-bottom:1px solid var(--line-soft)}
+.filter-sheet-foot{display:block;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:1px solid var(--line-soft);background:#fff}
+.filter-sheet-foot .button{width:100%;min-height:46px}
+.filters{padding-right:0}
+}
+
+/* De vaste beloftebalk onder de kop is op mobiel één veegbare regel. */
+@media(max-width:600px){
+.promise-bar>div{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;white-space:nowrap}
+.promise-bar>div::-webkit-scrollbar{display:none}
+.promise-bar span{flex:none}
+}
