@@ -1,4 +1,4 @@
-import{contact,phoneHref}from'@/data/contact';
+import{contact,phoneHref}from'@/data/contact';import{blackFriday,campaignPhase,daysUntilBlackFriday,earlyBlackFriday}from'@/data/campaign';
 import{useEffect,useRef,useState}from'react';import{Link}from'@tanstack/react-router';import{HeaderSearch}from'./HeaderSearch';import{ArrowLeft,ChevronDown,ChevronRight,Clock,Headphones,Menu,ShoppingCart,X}from'lucide-react';import{businessDiscountPercent,categories,collectionSlug,type Category}from'@/data/products';import{useCart}from'@/lib/cart-context';import{CartPanel}from'./CartPanel';
 
 type Collection=Category['collections'][number]
@@ -20,7 +20,7 @@ function columnsFor(category:Category):Collection[][]{
 }
 
 export function SiteHeader(){
-  const{items,panelOpen,openPanel,closePanel}=useCart()
+  const phase=campaignPhase();const{items,panelOpen,openPanel,closePanel}=useCart()
   const cartTimer=useRef<ReturnType<typeof setTimeout>|null>(null)
   // Het mandje klapt open zodra je eroverheen beweegt en sluit kort nadat je het verlaat.
   const hoverCart=()=>{if(cartTimer.current)clearTimeout(cartTimer.current);openPanel()}
@@ -118,8 +118,8 @@ export function SiteHeader(){
     </header>
 
     <div className="header-scrim" data-open={Boolean(openKey)} aria-hidden="true" onClick={close}/>
-    <div className="promise-bar"><div><span>Voor 23.59 uur besteld, morgen gratis bezorgd</span><span>Gratis ruilen binnen 30 dagen</span><span>Zakelijke prijzen incl. én excl. btw</span><span className="promise-temp">Tijdelijke ondernemersactie: {businessDiscountPercent} ondernemerskorting</span></div></div>
-    <div className="action-banner"><div><Clock/><span><b>Tijdelijke ondernemersactie</b> Onze actiekortingen en de {businessDiscountPercent} ondernemerskorting gelden maar voor een beperkte periode.</span><Link to="/categorie/$category" params={{category:'acties-merken'}}>Bekijk de acties <ChevronRight/></Link></div></div>
+    <div className="promise-bar"><div><span>Voor 23.59 uur besteld, morgen gratis bezorgd</span><span>Gratis ruilen binnen 30 dagen</span><span>Zakelijke prijzen incl. én excl. btw</span><span className="promise-temp">{phase==='early'?<>Early Black Friday: tot 50% korting</>:<>Tijdelijke ondernemersactie: {businessDiscountPercent} ondernemerskorting</>}</span></div></div>
+    <div className={`action-banner${phase==='off'?'':` bf-${phase}`}`}><div><Clock/>{phase==='early'?<span><b>Early Black Friday · {earlyBlackFriday.label}</b> Korting op het hele assortiment, tot 50%. Je {businessDiscountPercent} ondernemerskorting komt er nog bovenop.</span>:phase==='waiting'?<span><b>Black Friday · {blackFriday.label}</b> De Early Black Friday-sale is voorbij. Nog {daysUntilBlackFriday()} {daysUntilBlackFriday()===1?'dag':'dagen'} tot de echte Black Friday.</span>:<span><b>Tijdelijke ondernemersactie</b> Onze actiekortingen en de {businessDiscountPercent} ondernemerskorting gelden maar voor een beperkte periode.</span>}<Link to="/categorie/$category" params={{category:'acties-merken'}}>{phase==='early'?'Bekijk alle Black Friday-deals':'Bekijk de acties'} <ChevronRight/></Link></div></div>
 
     <div className="nav-drawer-scrim" data-open={drawerOpen} aria-hidden="true" onClick={closeAll}/>
     <aside className="nav-drawer" data-open={drawerOpen} aria-label="Menu" aria-hidden={!drawerOpen}>

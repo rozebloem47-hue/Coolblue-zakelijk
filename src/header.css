@@ -226,3 +226,23 @@
 .search .search-clear:hover{background:var(--grey);color:var(--ink)}
 }
 @media(max-width:600px){.search-suggest-price small{display:none}}
+
+/* Black Friday: dezelfde stroken en labels, in campagnestijl. */
+.action-banner.bf-early,.action-banner.bf-waiting{background:#14181f;border-bottom:3px solid var(--orange)}
+.action-banner.bf-early>div,.action-banner.bf-waiting>div{color:#e3e7ec}
+.action-banner.bf-early b{color:var(--orange)}
+.action-banner.bf-waiting{border-bottom-color:var(--yellow)}
+.action-banner.bf-waiting b{color:var(--yellow)}
+.action-banner.bf-early a,.action-banner.bf-waiting a{color:#fff}
+.deal-flag.bf,.pdp-deal.bf{background:#14181f;box-shadow:inset -3px 0 0 var(--orange)}
+.deal-flag.bf b,.pdp-deal.bf b{color:var(--orange);margin-left:3px}
+.temp-offer.bf{background:#14181f;color:#e3e7ec}
+.temp-offer.bf b{color:var(--orange)}
+.hero-panel.hero-bf{background:linear-gradient(120deg,#14181f 0%,#1d2533 60%,var(--navy) 100%)}
+.hero-panel.hero-bf:after{border-color:var(--orange);opacity:.55}
+.hero-panel.hero-bf .hero-label{color:var(--orange)}
+.price-sticker i{font-style:normal;font-weight:700;font-size:13px;color:#fff;background:#14181f;border-radius:var(--radius);padding:1px 6px;margin:0 auto 3px}
+.products-section.bf-deals{background:#14181f;color:#fff}
+.products-section.bf-deals .retail-heading h2{color:#fff}
+.products-section.bf-deals .retail-heading p{color:#c9d0d8}
+.products-section.bf-deals .retail-heading>a{color:var(--orange)}
