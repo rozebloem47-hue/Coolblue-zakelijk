@@ -261,7 +261,7 @@ function Overzicht({data}:{data:Data}){
       <div className="db-grid cols-4">
         <Tile label="Bezoekers nu" value={count(data.visits.active)} hint="actief in de laatste 5 minuten" live/>
         <Tile label="Sessies vandaag" value={count(data.visits.today.sessions)} hint={`${count(data.visits.today.views)} paginaweergaven`}/>
-        <Tile label="Orders vandaag" value={count(data.revenue.today.count)} hint="allemaal op factuur"/>
+        <Tile label="Orders vandaag" value={count(data.revenue.today.count)} hint="online bestellingen"/>
         <Tile label="Omzet vandaag" value={euro(data.revenue.today.revenue)} hint="inclusief btw"/>
       </div>
     </section>
@@ -411,7 +411,7 @@ function Orders({data,busy,post}:{data:Data;busy:boolean;post:Post}){
               <tbody>{data.orders.map(order=><tr key={order.id}>
                 <td><b>{order.orderNumber}</b><small>{moment(order.createdAt)}</small></td>
                 <td><b>{order.companyName??`${order.firstName??''} ${order.lastName??''}`.trim()}</b><small>{order.email}</small>
-                  {open===order.id&&<small>{address(order)}<br/>{order.kvk?`KvK ${order.kvk}`:''} {order.vatNumber??''}<br/>{order.reference?`Referentie: ${order.reference}`:''}{order.notes?<><br/>Opmerking: {order.notes}</>:null}<br/>{order.bunqPaymentUrl?<>Betaling: <a href={order.bunqPaymentUrl} target="_blank" rel="noreferrer">bunq.me-link van deze order</a> — betaalde de klant nog niet? Stuur deze link door.</>:'Betaling: op factuur, er is geen bunq.me-link gemaakt.'}</small>}
+                  {open===order.id&&<small>{address(order)}<br/>{order.kvk?`KvK ${order.kvk}`:''} {order.vatNumber??''}<br/>{order.reference?`Referentie: ${order.reference}`:''}{order.notes?<><br/>Opmerking: {order.notes}</>:null}<br/>{order.bunqPaymentUrl?<>Betaling: <a href={order.bunqPaymentUrl} target="_blank" rel="noreferrer">bunq.me-link van deze order</a> — betaalde de klant nog niet? Stuur deze link door.</>:'Er is geen betaallink beschikbaar voor deze order.'}</small>}
                 </td>
                 <td className="db-num">{euro(order.total)}<small>{order.discount&&Number(order.discount)>0?`−${euro(order.discount)} korting`:'geen korting'}</small></td>
                 <td>
@@ -617,7 +617,7 @@ function Merk({data,busy,post}:{data:Data;busy:boolean;post:Post}){
           <table className="db-table"><tbody>
             <tr><td>Ondernemerskorting</td><td className="db-num">{data.catalog.businessDiscount}</td></tr>
             <tr><td>Btw-tarief</td><td className="db-num">21%</td></tr>
-            <tr><td>Betaalwijze</td><td className="db-num">alleen op factuur</td></tr>
+            <tr><td>Betaalwijze</td><td className="db-num">iDEAL via bunq.me</td></tr>
             <tr><td>Betaaltermijn</td><td className="db-num">{data.integration.paymentTermDays} dagen</td></tr>
           </tbody></table>
         </div>

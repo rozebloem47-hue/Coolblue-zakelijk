@@ -23,7 +23,7 @@ export const Route=createFileRoute('/products/$productId')({
     const product=extra?.find(item=>item.slug===params.productId)
     return{meta:[
       {title:product?`${product.name} zakelijk kopen? | Coolblue Zakelijk`:'Product | Coolblue Zakelijk'},
-      {name:'description',content:product?`${product.name} met ${businessDiscountPercent} ondernemerskorting, prijzen inclusief én exclusief btw en afrekenen op factuur.`:'Bekijk dit artikel in onze zakelijke winkel.'},
+      {name:'description',content:product?`${product.name} met ${businessDiscountPercent} ondernemerskorting, prijzen inclusief én exclusief btw en veilig betalen met iDEAL.`:'Bekijk dit artikel in onze zakelijke winkel.'},
     ]}
   },
   component:ProductPage,
@@ -133,10 +133,10 @@ function ProductPage(){
             </div>
           </div>
           <button className="button primary pdp-add" onClick={toCart} ref={buyButton}><ShoppingCart/>In mijn mandje</button>
-          {added&&<p className="pdp-added"><Check/> Toegevoegd. <Link to="/checkout">Naar afrekenen op factuur</Link></p>}
+          {added&&<p className="pdp-added"><Check/> Toegevoegd. <Link to="/checkout">Naar afrekenen</Link></p>}
         </div>
         <ul className="pdp-usps">
-          <li><FileText/> Afrekenen op factuur, betaaltermijn 14 dagen</li>
+          <li><FileText/> Veilig online betalen met iDEAL</li>
           <li><Percent/> {businessDiscountPercent} ondernemerskorting op elk artikel</li>
           <li><Package/> Gratis bezorgd vanaf € 50,- op je zakelijke adres</li>
           <li><RefreshCcw/> 30 dagen retourrecht, ook zakelijk</li>
@@ -244,7 +244,7 @@ function ProductPage(){
       <h2>Service en advies</h2>
       <div className="pdp-advice-grid">
         <article><Headphones/><h3>Zakelijk advies</h3><p>Onze adviseurs denken mee over aantallen, installatie en beheer. Ook als je later wilt uitbreiden.</p></article>
-        <article><FileText/><h3>Altijd een btw-factuur</h3><p>Je rekent af op factuur. De factuur staat op de gegevens die je bij het afrekenen invult.</p></article>
+        <article><FileText/><h3>Altijd een btw-factuur</h3><p>Je betaalt direct met iDEAL. Je ontvangt een btw-factuur voor je administratie.</p></article>
         <article><Truck/><h3>Bezorging op afspraak</h3><p>Grote aantallen bezorgen we op een moment dat het je bedrijf uitkomt, ook buiten kantooruren.</p></article>
       </div>
     </section>

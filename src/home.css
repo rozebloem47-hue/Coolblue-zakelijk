@@ -1,0 +1,15 @@
+.home-kicker{display:block;font-size:12px;font-weight:800;letter-spacing:.09em;color:var(--factblue);margin-bottom:8px}
+.department-shop{border-top:1px solid var(--line,#ddd);padding-top:32px}
+.department-tabs{display:flex;gap:8px;overflow:auto;padding:4px 2px 16px;margin-bottom:24px;border-bottom:1px solid var(--line,#ddd)}
+.department-tabs button{flex-shrink:0;padding:12px 20px;border:1px solid var(--factblue);border-radius:4px;background:var(--white,#fff);color:var(--factblue);font:inherit;font-weight:700;cursor:pointer;transition:background .18s}
+.department-tabs button[aria-selected=true]{background:var(--factblue);color:white}
+.department-tabs button:hover{background:var(--blue-100);color:var(--factblue)}
+.department-tabs button:focus-visible,.rail-buttons button:focus-visible{outline:3px solid var(--orange,#f58220);outline-offset:3px}
+.department-empty{padding:32px;background:var(--blue-100);border-radius:6px}.department-empty h3{margin:12px 0}.department-empty p{margin-bottom:20px}
+.product-grid{scroll-behavior:smooth}
+@media(min-width:951px){.products-section .product-grid,.department-shop .product-grid{display:grid;grid-auto-flow:column;grid-auto-columns:calc((100% - 64px)/5);grid-template-columns:none;overflow-x:auto;gap:16px;scroll-snap-type:x proximity;padding-bottom:14px}.product-grid>article{scroll-snap-align:start}}
+@media(max-width:650px){.department-tabs button{padding:10px 14px}.department-shop .product-grid{display:grid;grid-auto-flow:column;grid-auto-columns:80%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x mandatory;gap:14px;padding-bottom:16px}.department-shop .product-grid>*{scroll-snap-align:start}}
+@media(prefers-reduced-motion:reduce){.product-grid{scroll-behavior:auto}.department-tabs button{transition:none}}
+
+.home-shortcuts{display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px;border-top:1px solid var(--line-soft);padding-top:20px;margin-top:24px;font-size:13px}.home-shortcuts a{display:inline-flex;align-items:center;gap:4px;color:var(--factblue)}.home-shortcuts svg{width:14px;height:14px}
+@media(max-width:950px){.products-section .product-grid{display:grid;grid-auto-flow:column;grid-auto-columns:75%;grid-template-columns:none;overflow-x:auto;scroll-snap-type:x proximity;padding-bottom:16px;gap:14px}}

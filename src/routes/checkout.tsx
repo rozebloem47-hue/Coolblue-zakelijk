@@ -146,6 +146,7 @@ function Checkout(){
             <div className="co-line-body">
               <Link to="/products/$productId" params={{productId:product.slug}} search={variant?{uitvoering:variant}:{}}>{name}</Link>
               {label&&<small className="co-line-variant">{label}</small>}
+              {product.delivery&&<small>{product.delivery}</small>}
               <small>{money(price)} per stuk · {money(exVat(price))} excl. btw</small>
               <div className="co-line-amount">
                 <button type="button" onClick={()=>remove(product.id,variant)} aria-label={`Eén ${name} minder`}><Minus/></button>
@@ -170,7 +171,7 @@ function Checkout(){
         <ul className="co-usps">
           <li><FileText/> Factuur met btw-specificatie in je mailbox</li>
           <li><Percent/> {businessDiscountPercent} ondernemerskorting verrekend, tijdelijke actie</li>
-          <li><Truck/> Morgen bezorgd op je zakelijke adres</li>
+          <li><Truck/> {lines.some(({product})=>product.delivery)?'Bekijk de bezorginformatie per artikel hierboven':'Morgen bezorgd op je zakelijke adres'}</li>
           <li><ShieldCheck/> 30 dagen retourrecht, ook zakelijk</li>
         </ul>
       </aside>
