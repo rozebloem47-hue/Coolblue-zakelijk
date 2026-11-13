@@ -45,6 +45,9 @@
 .db-head h1{font-family:var(--display);font-weight:600;font-size:26px;margin:2px 0 4px}
 .db-head p{margin:0;color:var(--db-muted);font-size:13px}
 .db-head-meta{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--db-muted)}
+.db-head-meta{flex-wrap:wrap;justify-content:flex-end}
+.db-order-sound{display:grid;gap:5px;max-width:260px}
+.db-order-sound small{font-size:11px;line-height:1.4}
 .db-refresh{display:inline-flex;align-items:center;gap:7px;background:var(--db-panel);border:1px solid var(--db-line);border-radius:var(--radius);padding:9px 13px;cursor:pointer;font-size:12px;font-weight:700;color:var(--db-accent)}
 .db-refresh:hover{border-color:var(--db-accent)}
 .db-section{margin-bottom:34px;scroll-margin-top:20px}

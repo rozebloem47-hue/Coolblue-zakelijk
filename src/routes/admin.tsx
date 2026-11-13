@@ -1,6 +1,6 @@
 import{createFileRoute}from'@tanstack/react-router'
-import{Fragment,useCallback,useEffect,useMemo,useState}from'react'
-import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,X}from'lucide-react'
+import{Fragment,useCallback,useEffect,useMemo,useRef,useState}from'react'
+import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,Volume2,VolumeX,X}from'lucide-react'
 import{categories}from'@/data/products'
 import{parseEuro,placements}from'@/data/imported-products'
 
@@ -86,6 +86,44 @@ function Days({rows}:{rows:{day:string;views:number;sessions:number}[]}){
   </>
 }
 
+/** Alleen nieuwe order-ID's melden; de eerste lading vormt de stille beginsituatie. */
+function OrderSound({orders}:{orders:Order[]}){
+  const audio=useRef<HTMLAudioElement|null>(null)
+  const latestId=useRef<number|null>(null)
+  const[enabled,setEnabled]=useState(false)
+  const[error,setError]=useState('')
+
+  const play=useCallback(async()=>{
+    try{
+      audio.current??=new Audio('/audio/nieuwe-bestelling.mp3')
+      audio.current.currentTime=0
+      await audio.current.play()
+      setError('')
+      setEnabled(true)
+    }catch{
+      setEnabled(false)
+      setError('Het geluid kon niet worden afgespeeld. Klik op Geluid aanzetten om opnieuw te proberen.')
+    }
+  },[])
+
+  useEffect(()=>{
+    const newest=orders.reduce((max,order)=>Math.max(max,order.id),0)
+    const hasNewOrder=latestId.current!==null&&newest>latestId.current
+    latestId.current=Math.max(latestId.current??0,newest)
+    if(hasNewOrder&&enabled)void play()
+  },[orders,enabled,play])
+
+  useEffect(()=>()=>{audio.current?.pause()},[])
+
+  return <div className="db-order-sound">
+    <button className="db-refresh" aria-pressed={enabled} onClick={()=>{
+      if(enabled){audio.current?.pause();setEnabled(false)}else void play()
+    }}>{enabled?<Volume2/>:<VolumeX/>}{enabled?'Bestelgeluid aan':'Geluid aanzetten'}</button>
+    <small>{enabled?'Nieuwe bestellingen geven een kassageluid zolang beheer openstaat.':'Zet het kassageluid aan en beluister een voorbeeld.'}</small>
+    {error&&<small role="status">{error}</small>}
+  </div>
+}
+
 function AdminPage(){
   const[state,setState]=useState<'laden'|'aanmelden'|'open'>('laden')
   const[data,setData]=useState<Data|null>(null)
@@ -93,16 +131,30 @@ function AdminPage(){
   const[loginError,setLoginError]=useState('')
   const[busy,setBusy]=useState(false)
   const[notice,setNotice]=useState<{text:string;ok:boolean}|null>(null)
+  const loading=useRef(false)
 
   const load=useCallback(async()=>{
-    const response=await fetch('/api/admin-data')
-    if(response.status===401){setState('aanmelden');setData(null);return}
-    if(!response.ok){setNotice({text:'De gegevens konden niet worden geladen.',ok:false});return}
-    setData(await response.json())
-    setState('open')
+    if(loading.current)return
+    loading.current=true
+    try{
+      const response=await fetch('/api/admin-data',{cache:'no-store'})
+      if(response.status===401){setState('aanmelden');setData(null);return}
+      if(!response.ok){setNotice({text:'De gegevens konden niet worden geladen.',ok:false});return}
+      setData(await response.json())
+      setState('open')
+    }catch{
+      setNotice({text:'De server reageerde niet. Probeer het opnieuw.',ok:false})
+    }finally{
+      loading.current=false
+    }
   },[])
 
   useEffect(()=>{load()},[load])
+  useEffect(()=>{
+    if(state!=='open')return
+    const interval=window.setInterval(()=>{void load()},15_000)
+    return()=>window.clearInterval(interval)
+  },[state,load])
 
   const signIn=async(event:React.FormEvent<HTMLFormElement>)=>{
     event.preventDefault()
@@ -176,6 +228,7 @@ function AdminPage(){
           <p>{data.visits.active>0?`${count(data.visits.active)} bezoeker(s) nu actief in de winkel.`:'Op dit moment is er geen bezoeker in de winkel.'}</p>
         </div>
         <div className="db-head-meta">
+          <OrderSound orders={data.orders}/>
           <span>Bijgewerkt {moment(data.generatedAt)}</span>
           <button className="db-refresh" onClick={()=>load()} disabled={busy}><RefreshCw/>Verversen</button>
         </div>
