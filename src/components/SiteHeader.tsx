@@ -130,7 +130,6 @@ export function SiteHeader(){
       <ul className="nav-drawer-list">
         {allCategories.map(category=><li key={category.slug}>
           <button onClick={()=>setDrawerSlug(category.slug)}>
-            <span aria-hidden="true">{category.icon}</span>
             <span>{category.name}</span>
             <ChevronRight/>
           </button>
