@@ -5,6 +5,7 @@
  */
 import{categories,collectionSlug,type Product,type ProductVariant,type VariantOption}from'./products'
 import{presentationFor}from'./catalog/presentation'
+import{isEarlyBlackFriday,salePercentFor,salePrice as saleOf}from'./campaign'
 
 /** Beheerproducten krijgen een eigen nummerreeks, zodat ze nooit botsen met de vaste catalogus. */
 export const IMPORTED_ID_OFFSET=100000
@@ -34,8 +35,10 @@ export const parseEuro=(value:unknown):number|null=>{
 /** Van databaserij naar winkelproduct. De ingevulde prijs is altijd inclusief 21% btw. */
 export const fromCatalogRow=(row:CatalogRow):Product=>{
   const look=presentationFor(row.subcategory,row.name)
-  const price=cents(Number(row.price))
-  const was=row.listPrice==null?0:cents(Number(row.listPrice))
+    // Tijdens de Early Black Friday-sale geldt op het hele assortiment een korting; de normale prijs wordt dan de doorgestreepte prijs.
+  const percent=isEarlyBlackFriday()?salePercentFor(row,cents(Number(row.price))):0
+  const salePrice=(base:number,listed:number)=>percent?{price:saleOf(base,percent),was:base}:{price:base,was:listed}
+  const{price,was}=salePrice(cents(Number(row.price)),row.listPrice==null?0:cents(Number(row.listPrice)))
   const deal=was>price?Math.round((1-price/was)*100):0
   const specs=row.specGroups.flatMap(group=>group.specs)
   // De standaarduitvoering volgt altijd de prijs van het product zelf.
@@ -43,8 +46,7 @@ export const fromCatalogRow=(row:CatalogRow):Product=>{
   const defaultVariant=stored.find(variant=>variant.sku===row.sourceSku)?.sku??stored[0]?.sku
   const variants:ProductVariant[]=stored.map(variant=>{
     const own=variant.sku===defaultVariant
-    const variantPrice=own?price:cents(Number(variant.price))
-    const variantWas=own?was:variant.listPrice==null?0:cents(Number(variant.listPrice))
+    const{price:variantPrice,was:variantWas}=own?{price,was}:salePrice(cents(Number(variant.price)),variant.listPrice==null?0:cents(Number(variant.listPrice)))
     return{sku:variant.sku,name:variant.name,values:variant.values,price:variantPrice,...(variantWas>variantPrice?{listPrice:variantWas}:{}),imageIds:variant.imageIds?.length?variant.imageIds:row.imageIds??[],...(variant.specs?.length?{specs:variant.specs}:{})}
   })
   const hasVariants=variants.length>1&&Boolean(row.variantOptions?.length)

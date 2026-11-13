@@ -5,6 +5,7 @@ import{accessoriesFor,businessDiscountPercent,businessPrice,collectionSlug,exVat
 import{photosForProduct}from'@/data/media'
 import{useCatalog}from'@/lib/shop-products'
 import{Price}from'@/components/Price'
+import{earlyBlackFriday,isEarlyBlackFriday}from'@/data/campaign'
 import{ProductCard}from'@/components/ProductCard'
 import{ProductGallery}from'@/components/ProductGallery'
 import{DuoOrderTicker}from'@/components/DuoOrderTicker'
@@ -109,7 +110,7 @@ function ProductPage(){
       </header>
 
       <div className="pdp-visual">
-        {product.dealPercent?<span className="pdp-deal">-{product.dealPercent}% tijdelijke actiekorting</span>:null}
+        {product.dealPercent?<span className={`pdp-deal${isEarlyBlackFriday()?' bf':''}`}>{isEarlyBlackFriday()?<>Early Black Friday <b>-{product.dealPercent}%</b></>:<>-{product.dealPercent}% tijdelijke actiekorting</>}</span>:null}
         <ProductGallery key={`${product.slug}-${variant?.sku??''}`} photos={photos} alt={product.name} icon={product.icon} color={product.color}/>
       </div>
 
@@ -119,7 +120,7 @@ function ProductPage(){
           {found&&variant&&<VariantPicker product={found} variant={variant} onPick={pick}/>}
           <Price value={product.price} className="pdp-price" note="excl. 21% btw" listPrice={product.listPrice} dealPercent={product.dealPercent}/>
           <p className="pdp-vat">Je betaalt {money(product.price)} inclusief btw, dat is {money(exVat(product.price))} exclusief 21% btw. Met je {businessDiscountPercent} ondernemerskorting rekenen we {money(businessPrice(product.price))} inclusief btw af.</p>
-          <p className="temp-offer"><Clock/> <span><b>Tijdelijke ondernemersactie.</b> Deze korting geldt maar voor een beperkte periode, dus wacht niet te lang.</span></p>
+          {isEarlyBlackFriday()?<p className="temp-offer bf"><Clock/> <span><b>Early Black Friday-prijs, {earlyBlackFriday.label}.</b> {product.dealPercent?`Je bespaart ${money((product.listPrice??product.price)-product.price)} op de normale prijs.`:'Op het hele assortiment geldt nu Black Friday-korting.'} Op is op.</span></p>:<p className="temp-offer"><Clock/> <span><b>Tijdelijke ondernemersactie.</b> Deze korting geldt maar voor een beperkte periode, dus wacht niet te lang.</span></p>}
           <div className="pdp-stock"><Check/> {product.stock}</div>
           {product.slug==='apple-iphone-duo-986126'&&<DuoOrderTicker/>}
           <div className="pdp-delivery"><Truck/> {product.delivery??'Morgen bezorgd, ook op zakelijke adressen'}</div>
@@ -169,7 +170,7 @@ function ProductPage(){
         </div>
         <div className="pdp-story-aside">
           <h3>Zakelijk voordeel</h3>
-          <p>{product.dealPercent?`Nu ${product.dealPercent}% actiekorting op de adviesprijs van ${money(product.listPrice??product.price)}. Daar komt je ${businessDiscountPercent} ondernemerskorting nog bovenop.`:`Je krijgt ${businessDiscountPercent} ondernemerskorting op dit artikel, verrekend in je mandje.`}</p>
+          <p>{product.dealPercent?`Nu ${product.dealPercent}% ${isEarlyBlackFriday()?'Early Black Friday-korting op de normale prijs':'actiekorting op de adviesprijs'} van ${money(product.listPrice??product.price)}. Daar komt je ${businessDiscountPercent} ondernemerskorting nog bovenop.`:`Je krijgt ${businessDiscountPercent} ondernemerskorting op dit artikel, verrekend in je mandje.`}</p>
           <table>
             <tbody>
               <tr><th>Inclusief btw</th><td>{money(product.price)}</td></tr>
