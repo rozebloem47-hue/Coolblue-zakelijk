@@ -223,3 +223,16 @@
 .duo-order-ticker button:hover{background:var(--blue-100)}
 .duo-order-ticker button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .duo-order-ticker button svg{width:16px;height:16px}
+
+/* Mobiel: productpagina mag nooit breder worden dan het scherm (geen horizontaal wankelen) */
+html,body{max-width:100%;overflow-x:clip;overscroll-behavior-x:none}
+.pdp{max-width:100vw;overflow-x:clip}
+.pdp-top>*,.pdp-info>*,.pdp-specs>*,.pdp-block>*,.pdp-visual,.pdp-buy,.pdp-head{min-width:0;max-width:100%}
+.pdp img,.pdp video,.pdp iframe,.pdp svg{max-width:100%}
+.pdp-head h1,.pdp-story,.pdp-spec-table th,.pdp-spec-table td,.pdp-quick dd,.pdp-vat{overflow-wrap:anywhere}
+@media(max-width:950px){
+  .pdp-info{grid-template-columns:minmax(0,1fr)}
+  .pdp-spec-table{table-layout:fixed;width:100%}
+}
+@media(max-width:767px){.pdp-top{grid-template-columns:minmax(0,1fr)}}
+@supports not (overflow-x:clip){html,body,.pdp{overflow-x:hidden}}
