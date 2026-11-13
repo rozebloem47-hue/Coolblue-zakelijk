@@ -43,6 +43,10 @@
 .listing-page>.item-hero .item-hero-advice{order:5;margin:0 16px 28px}
 
 /* Modellen en onderwerpen op één regel om doorheen te vegen. */
+/* Binnen de schermbreedte blijven, zodat alleen de rij zelf scrolt en niet de pagina. */
+.listing-page{overflow-x:clip}
+.listing-page>.model-strip,.listing-page>.collection-page-links{width:100%;max-width:100%;min-width:0;margin-left:0;margin-right:0}
+.listing-page>.collection-page-links>div{width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .listing-page>.model-strip{flex-wrap:nowrap;overflow-x:auto;padding:0 16px 10px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
 .listing-page>.model-strip::-webkit-scrollbar,.listing-page>.collection-page-links>div::-webkit-scrollbar{display:none}
 .listing-page>.model-strip a{flex:none;padding:7px 14px;white-space:nowrap}
