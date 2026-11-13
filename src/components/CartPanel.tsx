@@ -57,7 +57,7 @@ export function CartPanel(){
         <ul className="cart-panel-lines">
           {lines.slice(0,SHOWN_LINES).map(({key,product,quantity,price,name,imageId})=><li key={key} data-new={key===lastKey}>
             <ProductVisual icon={product.icon} color={product.color} photo={photoForProduct({...product,imageId},120)} alt={name} sizes="48px"/>
-            <span><b>{name}</b><small>{quantity} × {money(price)} · {money(exVat(price))} excl. btw</small></span>
+            <span><b>{name}</b><small>{quantity} × {money(price)} · {money(exVat(price))} excl. btw</small>{product.delivery&&<small>{product.delivery}</small>}</span>
             <em>{money(price*quantity)}</em>
           </li>)}
         </ul>

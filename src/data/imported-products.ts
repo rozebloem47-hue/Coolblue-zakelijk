@@ -58,7 +58,7 @@ export const fromCatalogRow=(row:CatalogRow):Product=>{
     rating:Number(row.rating)||4.5,reviews:row.reviews??0,
     stock:row.stock||'Morgen in huis',
     // Een toestel dat pas later leverbaar is, wordt ook niet morgen bezorgd.
-    ...(/^leverbaar vanaf/i.test(row.stock??'')?{delivery:'Bestel nu, gratis bezorgd zodra het leverbaar is'}:{}),
+    ...(/^leverbaar vanaf/i.test(row.stock??'')?{delivery:`${row.stock!.replace(/^leverbaar vanaf/i,'Bezorging vanaf')}, gratis bezorgd`}:{}),
     color:look.color,icon:look.icon,
     bullets:row.bullets.length?row.bullets:specs.slice(0,3).map(([label,value])=>`${label}: ${value}`),
     description:row.description,
