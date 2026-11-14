@@ -863,7 +863,7 @@ function Producten(){
       <div className="db-panel">
         <h3>{draft.id?'Product bewerken':'Controleren en toevoegen'}</h3>
         <p className="db-note">{draft.id?'Pas de gegevens aan en sla op.':'Dit hebben we van de pagina gehaald. Pas aan wat nodig is.'}</p>
-        {existing&&!draft.id&&<p className="db-message is-bad">Let op: dit Coolblue-artikel staat al in de winkel als “{existing.name}”. Opslaan maakt een tweede product aan. <button type="button" className="db-link" onClick={()=>setDraft(current=>current&&{...current,id:existing.id})}>Bestaand product bijwerken met deze foto's en gegevens</button></p>}
+        {existing&&!draft.id&&<p className="db-message is-bad">Let op: dit Coolblue-artikel staat al in de winkel als “{existing.name}”. Opslaan maakt een tweede product aan. <button type="button" className="db-link" onClick={()=>setDraft(current=>current&&{...current,id:existing.id,stock:current.stock||(items?.find(item=>item.id===existing.id)?.stock??'')})}>Bestaand product bijwerken met deze foto's en gegevens</button></p>}
         <ProductForm draft={draft} busy={busy} onSave={save} onCancel={()=>{setDraft(null);setExisting(null)}}/>
       </div>
     </section>}
