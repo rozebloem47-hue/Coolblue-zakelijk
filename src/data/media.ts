@@ -435,6 +435,8 @@ export const subjectAliases: Record<string, string> = {
   'dolce-gusto':'koffie',
   filterkoffieapparaten:'koffiezetapparaten',
   melkopschuimers:'koffie',
+  koffiemolens:'koffie',
+  'koffie-accessoires':'koffie',
   keukenmixers:'blenders',
   foodprocessors:'blenders',
   staafmixers:'blenders',

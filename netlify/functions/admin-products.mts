@@ -105,7 +105,7 @@ export default async(req:Request)=>withAdmin(req,async()=>{
       // Een andere kleur of opslag van een product dat al in de winkel staat, telt ook als bestaand.
       const skus=[...new Set([source.sourceSku,...source.variants.map(variant=>variant.sku)])]
       const[existing]=await db.select({id:catalogProducts.id,name:catalogProducts.name}).from(catalogProducts).where(or(inArray(catalogProducts.sourceSku,skus),...skus.map(sku=>sql`${catalogProducts.variants} @> ${JSON.stringify([{sku}])}::jsonb`))).limit(1)
-      const place=placementFor(source.breadcrumbs,source.productType)
+      const place=placementFor(source.breadcrumbs,source.productType,source.name)
       const specCount=source.specGroups.reduce((sum,group)=>sum+group.specs.length,0)
       const photoCount=source.imageIds.length
       const choices=source.variantOptions.map(option=>`${option.values.length} ${option.title.toLowerCase()}`).join(' en ')

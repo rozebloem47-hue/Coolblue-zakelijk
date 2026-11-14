@@ -60,11 +60,14 @@ footer>small{border-top-color:#ffffff24;color:#a8b0bd}
 
 /* Foto's: productbeelden vullen het vlak netjes, met een rustige zoom bij hover. */
 .product-visual{border-radius:var(--radius);overflow:hidden}
-.visual-photo{width:100%;height:100%;object-fit:contain;transition:transform var(--motion-medium) var(--ease)}
+.visual-photo{width:100%;height:100%;object-fit:contain;transition:transform var(--motion-medium) var(--ease);min-width:0;min-height:0;max-width:100%;max-height:100%}
+/* De fotocel krijgt precies de hoogte van het vlak: staande en vierkante foto's (koffiemachines, telefoons) passen dan helemaal in beeld in plaats van boven en onder afgeknipt te worden. */
+.product-visual:has(.visual-photo){grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr)}
 .product-visual:has(.visual-photo) .visual-orbit{display:none}
 .product-card .product-visual:has(.visual-photo),.collection-card .product-visual:has(.visual-photo),.category-card .product-visual:has(.visual-photo),.order-line .product-visual:has(.visual-photo){background:#fff!important}
 .product-card .product-visual{padding:8px}
-.product-card:hover .visual-photo,.category-card:hover .visual-photo,.collection-card:hover .visual-photo{transform:scale(1.04)}
+/* Alleen met een muis: op een touchscreen blijft de zoom na het vegen hangen en valt de foto buiten het vlak. */
+@media(hover:hover) and (pointer:fine){.product-card:hover .visual-photo,.category-card:hover .visual-photo,.collection-card:hover .visual-photo{transform:scale(1.04)}}
 .promotion-card .product-visual:has(.visual-photo),.brand-world .product-visual:has(.visual-photo),.campaign-main .product-visual:has(.visual-photo),.hero-showcase .product-visual:has(.visual-photo){background:transparent!important}
 .promotion-card .visual-photo,.brand-world .visual-photo,.campaign-main .visual-photo,.hero-showcase .visual-photo{object-position:bottom right;filter:drop-shadow(0 12px 18px #1b1e2426)}
 .hero-showcase .product-visual{width:74%;height:76%;right:-2%}

@@ -92,24 +92,46 @@ export type Placement={category:string;collection:string;subcategory:string}
 /** Alle subcollecties van de winkel op één rij, met afdeling en collectie erbij. */
 export const placements=():Placement[]=>categories.flatMap(category=>category.collections.flatMap(collection=>collection.items.map(item=>({category:category.slug,collection:collection.name,subcategory:item}))))
 
+/** Producttypes van Coolblue die anders heten dan onze subcollecties. */
+const typeAliases:[RegExp,string][]=[
+  [/halfautomatische-espressomachines|piston/,'Pistonmachines'],
+  [/volautomatische/,'Volautomatische espressomachines'],
+  [/koffiemolen/,'Koffiemolens'],
+  [/melkreservoir|koffie-accessoires|ontkalk/,'Koffie accessoires'],
+  [/filterkoffie/,'Filterkoffieapparaten'],
+]
+/** Merknamen en series die de soort koffiemachine verraden, voor "cup- en padmachines". */
+const nameAliases:[RegExp,string][]=[
+  [/senseo/i,'Senseo'],
+  [/dolce gusto/i,'Dolce Gusto'],
+  [/nespresso|l.or barista|vertuo/i,'Nespresso'],
+]
+
 /**
  * De best passende plek in de winkel voor een product, op basis van het
  * kruimelpad van de bronpagina. De diepste kruimel die we als subcollectie
  * kennen wint; daarna het producttype, de collectie en de afdeling.
  */
-export const placementFor=(breadcrumbs:string[],productType?:string|null):Placement=>{
+export const placementFor=(breadcrumbs:string[],productType?:string|null,name?:string|null):Placement=>{
   // Merk- en actiepagina's zijn verzamelplekken: alleen als niets anders past.
   const everything=placements()
   const all=everything.filter(place=>place.category!=='acties-merken')
   const key=(value:string)=>collectionSlug(value)
+  const bySub=(subcategory:string)=>all.find(place=>place.subcategory===subcategory)
   const crumbs=[...breadcrumbs].reverse()
   for(const crumb of crumbs){const hit=all.find(place=>key(place.subcategory)===key(crumb));if(hit)return hit}
+  // Alleen bij koffiemachines op cups of pads; een melkopschuimer van Nespresso blijft een melkopschuimer.
+  if(name&&(!productType||/cup|pad|capsule/.test(key(productType)))){for(const[pattern,sub]of nameAliases){const hit=pattern.test(name)&&bySub(sub);if(hit)return hit}}
   if(productType){
     const type=key(productType)
+    for(const[pattern,sub]of typeAliases){const hit=pattern.test(type)&&bySub(sub);if(hit)return hit}
     const hit=all.find(place=>key(place.subcategory)===type)??all.find(place=>key(place.subcategory).includes(type)||type.includes(key(place.subcategory)))
     if(hit)return hit
   }
+  for(const crumb of crumbs){for(const[pattern,sub]of typeAliases){const hit=pattern.test(key(crumb))&&bySub(sub);if(hit)return hit}}
   for(const crumb of crumbs){const hit=all.find(place=>key(place.collection)===key(crumb));if(hit)return hit}
+  // "Koffiezetapparaten" hoort bij de collectie "Koffie": de kruimel begint met de collectienaam.
+  for(const crumb of crumbs){const hit=all.find(place=>key(place.collection).length>=5&&key(crumb).startsWith(key(place.collection)));if(hit)return hit}
   for(const crumb of crumbs){
     const category=categories.find(item=>key(item.name)===key(crumb)||item.slug===key(crumb))
     if(category)return{category:category.slug,collection:category.collections[0].name,subcategory:category.collections[0].items[0]}
