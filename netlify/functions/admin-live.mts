@@ -38,7 +38,7 @@ const summary=()=>Promise.all([
     // Per actieve sessie het laatste meetpunt: waar is die bezoeker nu, op welk apparaat, met welk mandje.
     db.selectDistinctOn([visitorEvents.sessionId],{sessionId:visitorEvents.sessionId,device:visitorEvents.device,browser:visitorEvents.browser,os:visitorEvents.os,path:visitorEvents.path,cartValue:visitorEvents.cartValue,isActive:visitorEvents.isActive}).from(visitorEvents).where(active).orderBy(visitorEvents.sessionId,desc(visitorEvents.createdAt)).limit(2000)
 ])
-const latest=(after:number)=>db.select({id:visitorEvents.id,sessionId:visitorEvents.sessionId,eventType:visitorEvents.eventType,path:visitorEvents.path,productId:visitorEvents.productId,productName:visitorEvents.productName,referrer:visitorEvents.referrer,device:visitorEvents.device,browser:visitorEvents.browser,os:visitorEvents.os,cartValue:visitorEvents.cartValue,cartItems:visitorEvents.cartItems,createdAt:visitorEvents.createdAt})
+const latest=(after:number)=>db.select({id:visitorEvents.id,sessionId:visitorEvents.sessionId,eventType:visitorEvents.eventType,path:visitorEvents.path,productId:visitorEvents.productId,productName:visitorEvents.productName,referrer:visitorEvents.referrer,device:visitorEvents.device,browser:visitorEvents.browser,os:visitorEvents.os,cartValue:visitorEvents.cartValue,cartItems:visitorEvents.cartItems,cartLines:visitorEvents.cartLines,createdAt:visitorEvents.createdAt})
   .from(visitorEvents)
   .where(and(gt(visitorEvents.id,after),ne(visitorEvents.eventType,'heartbeat'),sql`${visitorEvents.createdAt} >= now() - interval '1 day'`))
   .orderBy(desc(visitorEvents.id)).limit(after?100:40)

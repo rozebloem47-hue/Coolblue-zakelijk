@@ -1,0 +1,1 @@
+ALTER TABLE "visitor_events" ADD COLUMN "cart_lines" jsonb;
