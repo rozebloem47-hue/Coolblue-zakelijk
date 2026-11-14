@@ -3,6 +3,7 @@ import{Fragment,useCallback,useEffect,useMemo,useRef,useState}from'react'
 import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,Volume2,VolumeX,X}from'lucide-react'
 import{categories}from'@/data/products'
 import{parseEuro,placements}from'@/data/imported-products'
+import{LiveTracker}from'@/components/LiveTracker'
 
 export const Route=createFileRoute('/admin')({
   // De beheeromgeving hoort niet in een zoekmachine en heeft geen winkelchroom.
@@ -47,7 +48,7 @@ const views=[
 type ViewKey=typeof views[number]['key']
 
 const orderStatuses=['nieuw','gefactureerd','betaald','verzonden','geannuleerd','factuur mislukt']
-const eventLabels:Record<string,string>={page_view:'Paginabezoek',heartbeat:'Nog actief',leave:'Vertrokken',add_to_cart:'In mandje gelegd'}
+const eventLabels:Record<string,string>={page_view:'Paginabezoek',heartbeat:'Nog actief',leave:'Vertrokken',add_to_cart:'In mandje gelegd',remove_from_cart:'Uit mandje gehaald',begin_checkout:'Naar afrekenen',checkout_submit:'Bestelling verstuurd',order_placed:'Order geplaatst'}
 
 const euro=(value:number|string)=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(Number(value)||0)
 const count=(value:number)=>new Intl.NumberFormat('nl-NL').format(value||0)
@@ -255,6 +256,8 @@ function Overzicht({data}:{data:Data}){
   const pages=data.topPages.slice(0,6)
   const pageTop=Math.max(1,...pages.map(row=>row.views))
   return <>
+    <LiveTracker/>
+
     <section className="db-section">
       <h2>Vandaag</h2>
       <p className="db-lead">De stand van zaken sinds middernacht.</p>
