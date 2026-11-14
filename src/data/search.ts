@@ -14,9 +14,13 @@ const words=(query:string)=>normalize(query).split(' ').filter(Boolean)
 
 const categoryName=(slug:string)=>categories.find(category=>category.slug===slug)?.name??''
 
+/** Koffiemachines heten bij klanten vaak gewoon "koffieapparaat" of "koffiemachine", ook als het type "volautomatische espressomachine" of "Nespresso" is. */
+const coffeeMachine=/espressomachine|koffiemachine|pistonmachine|filterkoffie|senseo|nespresso|dolce gusto/i
+const synonyms=(product:Product)=>coffeeMachine.test(product.subcategory)?'koffieapparaat koffieapparaten koffiemachine koffiemachines':''
+
 /** Alle tekst waarop een product (en eventueel een uitvoering) gevonden kan worden. */
 const haystack=(product:Product,variant?:Match['variant'])=>normalize([
-  variant?.name||product.name,product.brand,product.subcategory,categoryName(product.category),product.series,product.colorName,
+  variant?.name||product.name,product.brand,product.subcategory,categoryName(product.category),product.series,product.colorName,synonyms(product),
   ...(variant?Object.values(variant.values):[]),variant?.sku,
 ].filter(Boolean).join(' '))
 
