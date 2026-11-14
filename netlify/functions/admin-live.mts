@@ -53,6 +53,8 @@ export default async(req:Request)=>withAdmin(req,async()=>{
   return Response.json({
     generatedAt:new Date().toISOString(),
     active:now.length,
+    // Sessies die nu online zijn (laatste 5 minuten actief en niet vertrokken), voor het vastpinnen in de ticker.
+    online:now.map(row=>row.sessionId),
     totals:{...totals,orders:orderTotals.count,revenue:orderTotals.revenue},
     openCarts:{count:openCarts.length,value:openCarts.reduce((sum,row)=>sum+Number(row.cartValue),0)},
     devices:tally('device'),browsers:tally('browser').slice(0,6),systems:tally('os').slice(0,6),
