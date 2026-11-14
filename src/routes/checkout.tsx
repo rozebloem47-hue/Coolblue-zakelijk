@@ -8,6 +8,7 @@ import{ProductVisual}from'@/components/ProductVisual'
 import{useCart}from'@/lib/cart-context'
 import{rememberPaymentLink}from'@/lib/payment'
 import{betaalMetIdeal,toonWachtScherm}from'@/lib/ideal'
+import{track}from'@/components/Analytics'
 
 
 export const Route=createFileRoute('/checkout')({
@@ -68,6 +69,7 @@ function Checkout(){
       return
     }
     setSending(true);setError('')
+    track('checkout_submit',{cartValue:Math.round(total*100)/100})
     const controller=new AbortController()
     const timeout=window.setTimeout(()=>controller.abort(),45000)
     try{
@@ -79,6 +81,7 @@ function Checkout(){
       if(!response.ok||!result?.ok){setError(result?.error??'Het afrekenen lukte niet. Probeer het nog eens of bel ons.');return}
       if(!result.paymentUrl)throw new Error('Betaallink ontbreekt')
       rememberPaymentLink(result.orderNumber,result.paymentUrl)
+      track('order_placed',{cartValue:Number(result.totals?.total??total),productName:result.orderNumber})
             clear()
       toonWachtScherm('Bestelling geplaatst, je gaat nu betalen...')
       await betaalMetIdeal({amount:Number(result.totals?.total??0),fallbackUrl:result.paymentUrl,timeoutMs:20000})
