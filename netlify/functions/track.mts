@@ -23,15 +23,20 @@ const allowed=(key:string,limit:number)=>{
 }
 
 const text=(value:unknown,max:number)=>typeof value==='string'&&value.trim()?value.trim().slice(0,max):null
+/** Mandjesregels: naam, aantal en stukprijs incl. btw; alles wat niet klopt valt weg. */
+const lines=(value:unknown)=>Array.isArray(value)?value.slice(0,15).map(line=>{
+  const name=text(line?.name,120);const quantity=Number(line?.quantity);const price=Number(line?.price)
+  return name&&Number.isInteger(quantity)&&quantity>0&&quantity<1000?{name,quantity,price:Number.isFinite(price)&&price>=0&&price<10_000_000?Math.round(price*100)/100:0}:null
+}).filter((line):line is{name:string;quantity:number;price:number}=>Boolean(line)):null
 const amount=(value:unknown)=>{const n=Number(value);return Number.isFinite(n)&&n>=0&&n<10_000_000?n.toFixed(2):null}
 
 export default async(req:Request,context:Context)=>{
   if(req.method!=='POST')return new Response('Method not allowed',{status:405})
-  if(Number(req.headers.get('content-length')??0)>4096)return done()
+  if(Number(req.headers.get('content-length')??0)>8192)return done()
   const ua=req.headers.get('user-agent')??''
   if(isBot(ua))return done()
   let body:Record<string,unknown>
-  try{body=JSON.parse((await req.text()).slice(0,4096))}catch{return done()}
+  try{body=JSON.parse((await req.text()).slice(0,8192))}catch{return done()}
   if(!body||typeof body!=='object'||body.automated)return done()
   const sessionId=text(body.sessionId,80)
   const eventType=text(body.eventType,40)
@@ -51,6 +56,7 @@ export default async(req:Request,context:Context)=>{
       isActive:eventType!=='leave',
       device:agent.device,browser:agent.browser,os:agent.os,
       cartValue:amount(body.cartValue),
+      cartLines:lines(body.cartLines),
       cartItems:Number.isInteger(cartItems)&&cartItems>=0&&cartItems<1000?cartItems:null,
     })
   }catch(error){console.error('Meetpunt opslaan mislukt',error)}

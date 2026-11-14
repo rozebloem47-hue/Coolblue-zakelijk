@@ -13,7 +13,8 @@ export const Route=createFileRoute('/admin')({
 
 type Counts={views:number;sessions:number}
 type Sales={revenue:string;count:number}
-type Order={id:number;orderNumber:string;companyName:string|null;email:string;total:string;status:string;firstName:string|null;lastName:string|null;phone:string|null;kvk:string|null;vatNumber:string|null;reference:string|null;street:string|null;houseNumber:string|null;postalCode:string|null;city:string|null;country:string|null;subtotal:string|null;discount:string|null;vatAmount:string|null;paymentMethod:string;businessOrder:boolean;notes:string|null;bunqPaymentUrl:string;createdAt:string|null}
+type Order={id:number;orderNumber:string;companyName:string|null;email:string;total:string;status:string;firstName:string|null;lastName:string|null;phone:string|null;kvk:string|null;vatNumber:string|null;reference:string|null;street:string|null;houseNumber:string|null;postalCode:string|null;city:string|null;country:string|null;subtotal:string|null;discount:string|null;vatAmount:string|null;paymentMethod:string;businessOrder:boolean;notes:string|null;bunqPaymentUrl:string;createdAt:string|null;items?:OrderItem[]}
+type OrderItem={productId:number;productName:string;quantity:number;unitPrice:string}
 type Invoice={id:number;orderId:number;number:string|null;status:string;amount:string;pdfUrl:string|null;dueDate:string|null;error:string|null;createdAt:string|null;orderNumber:string|null;companyName:string|null;email:string|null}
 type Integration={provider:string;baseUrl:string;invoicePath:string;keyLast4:string|null;keyUpdatedAt:string|null;senderCompany:string|null;senderVat:string|null;senderIban:string|null;senderAddress:string|null;paymentTermDays:number;autoCreate:boolean;active:boolean;lastCheckAt:string|null;lastCheckOk:boolean|null;lastCheckMessage:string|null}
 type Settings={siteName:string;tagline:string|null;supportEmail:string|null;supportPhone:string|null;logoKey:string|null}
@@ -410,12 +411,13 @@ function Orders({data,busy,post}:{data:Data;busy:boolean;post:Post}){
           <h3>Laatste 25 orders</h3>
           <p className="db-note">Pas de status aan zodra je een order oppakt.</p>
           {data.orders.length
-            ?<table className="db-table"><thead><tr><th>Order</th><th>Klant</th><th className="db-num">Totaal</th><th>Status</th><th/></tr></thead>
+            ?<table className="db-table"><thead><tr><th>Order</th><th>Klant</th><th>Producten</th><th className="db-num">Totaal</th><th>Status</th><th/></tr></thead>
               <tbody>{data.orders.map(order=><tr key={order.id}>
                 <td><b>{order.orderNumber}</b><small>{moment(order.createdAt)}</small></td>
                 <td><b>{order.companyName??`${order.firstName??''} ${order.lastName??''}`.trim()}</b><small>{order.email}</small>
                   {open===order.id&&<small>{address(order)}<br/>{order.kvk?`KvK ${order.kvk}`:''} {order.vatNumber??''}<br/>{order.reference?`Referentie: ${order.reference}`:''}{order.notes?<><br/>Opmerking: {order.notes}</>:null}<br/>{order.bunqPaymentUrl?<>Betaling: <a href={order.bunqPaymentUrl} target="_blank" rel="noreferrer">bunq.me-link van deze order</a> — betaalde de klant nog niet? Stuur deze link door.</>:'Er is geen betaallink beschikbaar voor deze order.'}</small>}
                 </td>
+                <td><OrderProducts items={order.items??[]} detailed={open===order.id}/></td>
                 <td className="db-num">{euro(order.total)}<small>{order.discount&&Number(order.discount)>0?`−${euro(order.discount)} korting`:'geen korting'}</small></td>
                 <td>
                   <Status value={order.status}/>
@@ -435,6 +437,20 @@ function Orders({data,busy,post}:{data:Data;busy:boolean;post:Post}){
       </div>
     </section>
   </>
+}
+
+/** Wat er besteld is: aantal, product en (bij details) stukprijs en regeltotaal, incl. en excl. btw. */
+function OrderProducts({items,detailed}:{items:OrderItem[];detailed:boolean}){
+  if(!items.length)return <small className="db-muted">Geen producten bekend</small>
+  const pieces=items.reduce((sum,item)=>sum+item.quantity,0)
+  return <div className="db-order-items">
+    <ul>{items.map((item,index)=><li key={index}>
+      <b>{item.quantity}×</b>
+      <span>{item.productName}{detailed&&<small>{euro(item.unitPrice)} per stuk · {euro(Number(item.unitPrice)/1.21)} excl. btw</small>}</span>
+      {detailed&&<em>{euro(Number(item.unitPrice)*item.quantity)}<small>{euro(Number(item.unitPrice)*item.quantity/1.21)} excl.</small></em>}
+    </li>)}</ul>
+    <small>{pieces} {pieces===1?'stuk':'stuks'} · {items.length} {items.length===1?'product':'producten'}</small>
+  </div>
 }
 
 function Facturen({data,busy,post}:{data:Data;busy:boolean;post:Post}){

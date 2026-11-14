@@ -3,7 +3,7 @@
  * facturen, catalogus en de status van de koppelingen.
  */
 import type{Config}from'@netlify/functions'
-import{desc,eq,sql}from'drizzle-orm'
+import{desc,eq,inArray,sql}from'drizzle-orm'
 import{db}from'../../db/index.js'
 import{catalogProducts,invoices,orderItems,orders,siteSettings,visitorEvents}from'../../db/schema.js'
 import{withAdmin}from'../shared/admin.js'
@@ -68,6 +68,10 @@ export default async(req:Request)=>withAdmin(req,async()=>{
     integrationSettings(),
   ])
 
+  // Per order de bestelde producten, zodat beheer direct ziet wat er gekocht is.
+  const items=latestOrders.length?await db.select({orderId:orderItems.orderId,productId:orderItems.productId,productName:orderItems.productName,quantity:orderItems.quantity,unitPrice:orderItems.unitPrice}).from(orderItems).where(inArray(orderItems.orderId,latestOrders.map(order=>order.id))).orderBy(orderItems.id):[]
+  const itemsOf=(id:number)=>items.filter(item=>item.orderId===id).map(({orderId,...item})=>item)
+
   const orderCount=revenueAll.count
   const sessions30=visits30.sessions
   return Response.json({
@@ -77,7 +81,7 @@ export default async(req:Request)=>withAdmin(req,async()=>{
       averageOrder:orderCount?Math.round((Number(revenueAll.revenue)/orderCount)*100)/100:0,
       conversion:sessions30?Math.round((revenue30.count/sessions30)*1000)/10:0},
     timeline,topPages,referrers,funnel,recentEvents,
-    orders:latestOrders,
+    orders:latestOrders.map(order=>({...order,items:itemsOf(order.id)})),
     invoices:latestInvoices,
     invoiceStatus,
     topProducts,

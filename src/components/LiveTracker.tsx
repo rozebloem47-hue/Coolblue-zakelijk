@@ -7,7 +7,8 @@ import{Eye,LogOut,Monitor,Pause,Play,ShoppingCart,Smartphone,Tablet,CreditCard,P
  * browser en mandjesbedrag. Haalt elke paar seconden alleen nieuwe
  * gebeurtenissen op en pauzeert zodra het tabblad niet zichtbaar is.
  */
-type LiveEvent={id:number;sessionId:string;eventType:string;path:string;productId:number|null;productName:string|null;referrer:string|null;device:string|null;browser:string|null;os:string|null;cartValue:string|null;cartItems:number|null;createdAt:string|null}
+type LiveEvent={id:number;sessionId:string;eventType:string;path:string;productId:number|null;productName:string|null;referrer:string|null;device:string|null;browser:string|null;os:string|null;cartValue:string|null;cartItems:number|null;cartLines:CartLine[]|null;createdAt:string|null}
+type CartLine={name:string;quantity:number;price:number}
 type Tally={label:string;count:number}[]
 type Live={
   generatedAt:string;active:number;online?:string[]
@@ -34,6 +35,29 @@ const kinds:Record<string,{label:string;icon:typeof Eye;tone:string}>={
 const euro=(value:number|string)=>new Intl.NumberFormat('nl-NL',{style:'currency',currency:'EUR'}).format(Number(value)||0)
 const count=(value:number)=>new Intl.NumberFormat('nl-NL').format(value||0)
 const clock=(value:string|null)=>value?new Intl.DateTimeFormat('nl-NL',{hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(value)):'—'
+/** Gebeurtenissen waarbij de inhoud van het mandje telt. */
+const WITH_CART=new Set(['add_to_cart','remove_from_cart','begin_checkout','checkout_submit','order_placed'])
+const CHECKOUT=new Set(['begin_checkout','checkout_submit','order_placed'])
+
+/** Wat er gebeurde: welk product erin of eruit ging, en wat er op dat moment in het mandje of de checkout zat. */
+function What({event}:{event:LiveEvent}){
+  const lines=event.cartLines??[]
+  if(!WITH_CART.has(event.eventType))return <span className="lt-what" title={event.path}>{event.productName??event.path}{event.productName&&<small>{event.path}</small>}{event.eventType==='page_view'&&event.referrer&&<small>via {event.referrer}</small>}</span>
+  const added=event.eventType==='add_to_cart'
+  const removed=event.eventType==='remove_from_cart'
+  const order=event.eventType==='order_placed'
+  return <span className="lt-what lt-what-cart">
+    {(added||removed)&&<span className={`lt-product ${removed?'is-removed':''}`} title={event.productName??''}>{added?'+ ':'− '}{event.productName??'Onbekend product'}</span>}
+    {order&&event.productName&&<span className="lt-product">Order {event.productName}</span>}
+    {lines.length
+      ?<>
+        <small className="lt-lines-title">{CHECKOUT.has(event.eventType)?(order?'Besteld':'In de checkout'):'Nu in het mandje'}</small>
+        <ul className="lt-lines">{lines.map((line,index)=><li key={index} title={line.name}><b>{line.quantity}×</b><span>{line.name}</span><em>{euro(line.price*line.quantity)}</em></li>)}</ul>
+      </>
+      :CHECKOUT.has(event.eventType)&&<small>Inhoud niet bekend (oudere meting)</small>}
+  </span>
+}
+
 const DeviceIcon=({device}:{device:string|null})=>device==='mobiel'?<Smartphone/>:device==='tablet'?<Tablet/>:<Monitor/>
 
 function Split({title,rows,total}:{title:string;rows:Tally;total:number}){
@@ -144,7 +168,7 @@ export function LiveTracker(){
       <div className="db-grid split lt-body">
         <div className="db-panel lt-ticker">
           <h3>Ticker</h3>
-          <p className="db-note">Elke gebeurtenis, nieuwste bovenaan. Mandjes en afrekenen van bezoekers die nog online zijn blijven bovenaan staan en zakken pas naar hun plek als de bezoeker vertrekt. Het mandbedrag is de stand op dat moment.</p>
+          <p className="db-note">Elke gebeurtenis, nieuwste bovenaan. Mandjes en afrekenen van bezoekers die nog online zijn blijven bovenaan staan en zakken pas naar hun plek als de bezoeker vertrekt. Bij mandjes en afrekenen zie je welk product erbij kwam en wat er op dat moment in het mandje of de checkout zat. Het mandbedrag is de stand op dat moment.</p>
           {ordered.list.length?<ol>{ordered.list.map(event=>{
             const kind=kinds[event.eventType]??{label:event.eventType,icon:Eye,tone:'view'}
             const value=Number(event.cartValue)
@@ -152,7 +176,7 @@ export function LiveTracker(){
             return <li key={event.id} ref={el=>{if(el)rows.current.set(event.id,el);else rows.current.delete(event.id)}} className={`is-${kind.tone} ${fresh.has(event.id)?'is-new':''} ${pinned?'is-pinned':''}`}>
               <time>{clock(event.createdAt)}</time>
               <span className="lt-kind"><kind.icon/>{kind.label}{pinned&&<em className="lt-online" title="Deze bezoeker is nu online">online</em>}</span>
-              <span className="lt-what" title={event.path}>{event.productName??event.path}{event.productName&&<small>{event.path}</small>}{event.eventType==='page_view'&&event.referrer&&<small>via {event.referrer}</small>}</span>
+              <What event={event}/>
               <span className="lt-agent" title={`${event.device??'onbekend'} · ${event.browser??''} · ${event.os??''}`}><DeviceIcon device={event.device}/>{event.browser??'Onbekend'}<small>{event.os??''}</small></span>
               <span className="lt-cart">{value>0?<><b>{euro(value)}</b><small>{euro(value/1.21)} excl. · {count(event.cartItems??0)} st.</small></>:<small>leeg mandje</small>}</span>
             </li>
