@@ -1,0 +1,1 @@
+CREATE INDEX "visitor_events_type_session_idx" ON "visitor_events" ("event_type","session_id");

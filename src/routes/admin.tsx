@@ -1,6 +1,6 @@
 import{createFileRoute}from'@tanstack/react-router'
 import{Fragment,useCallback,useEffect,useMemo,useRef,useState}from'react'
-import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,Tag,Trash2,Users,Volume2,VolumeX,X}from'lucide-react'
+import{AlertTriangle,Ban,BarChart3,CheckCircle2,Clock,Download,ExternalLink,Eye,EyeOff,FileText,Link2,LogOut,Package,Pencil,Plus,RefreshCw,Settings2,ShoppingBag,ShoppingCart,Tag,Trash2,Users,Volume2,VolumeX,X}from'lucide-react'
 import{categories}from'@/data/products'
 import{parseEuro,placements}from'@/data/imported-products'
 import{LiveTracker}from'@/components/LiveTracker'
@@ -39,6 +39,7 @@ type Data={
 const views=[
   {key:'overzicht',label:'Overzicht',icon:BarChart3},
   {key:'bezoek',label:'Bezoekers en tracking',icon:Users},
+  {key:'interesse',label:'Mandjes en checkouts',icon:ShoppingCart},
   {key:'orders',label:'Orders',icon:ShoppingBag},
   {key:'facturen',label:'Facturen',icon:FileText},
   {key:'producten',label:'Producten',icon:Tag},
@@ -240,6 +241,7 @@ function AdminPage(){
 
       {view==='overzicht'&&<Overzicht data={data}/>}
       {view==='bezoek'&&<Bezoek data={data}/>}
+      {view==='interesse'&&<Interesse/>}
       {view==='orders'&&<Orders data={data} busy={busy} post={post}/>}
       {view==='facturen'&&<Facturen data={data} busy={busy} post={post}/>}
       {view==='producten'&&<Producten/>}
@@ -911,6 +913,184 @@ function Producten(){
             {pricing===item.id&&<tr className="db-price-row"><td/><td colSpan={5}><QuickPrice item={item} busy={busy} onClose={()=>setPricing(null)} onSave={async(price,listPrice)=>{if(await call({action:'price',id:item.id,price,listPrice}))setPricing(null)}}/></td></tr>}
           </Fragment>)}</tbody>
         </table>}
+      </div>
+    </section>
+  </>
+}
+
+type InterestLine={name:string;quantity:number;price:number}
+type InterestProduct={name:string;added:number;visitors:number;removed:number;checkoutVisitors:number;submitVisitors:number;ordered:number;orders:number;last:string|null}
+type InterestCustomer={orderNumber:string;companyName:string|null;firstName:string|null;lastName:string|null;email:string|null;phone:string|null;city:string|null;total:string|null;status:string|null}
+type InterestVisitor={sessionId:string;first:string;last:string;device:string|null;browser:string|null;os:string|null;added:number;removed:number;checkouts:number;submits:number;placed:number;products:string[]|null;checkoutLines:InterestLine[]|null;checkoutValue:string|null;landing:string|null;referrer:string|null;orders:InterestCustomer[]}
+type InterestData={
+  totals:{addToCart:number;removeFromCart:number;checkouts:number;submits:number;placed:number;cartSessions:number;checkoutSessions:number;submitSessions:number;orderSessions:number;since:string|null}
+  products:InterestProduct[];visitors:InterestVisitor[];total:number;page:number;pageSize:number
+}
+type TimelineEvent={id:number;eventType:string;path:string;productName:string|null;referrer:string|null;cartValue:string|null;cartLines:InterestLine[]|null;createdAt:string|null}
+
+const interestStages=[
+  {key:'alle',label:'Alle bezoekers'},
+  {key:'mandje',label:'Alleen mandje'},
+  {key:'checkout',label:'Naar afrekenen'},
+  {key:'afgehaakt',label:'Afgehaakt bij afrekenen'},
+  {key:'besteld',label:'Besteld'},
+]
+const longMoment=(value:string|null)=>value?new Intl.DateTimeFormat('nl-NL',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}).format(new Date(value)):'—'
+const percent=(part:number,whole:number)=>whole?`${Math.round((part/whole)*100)}%`:'—'
+
+/** Hoe ver kwam deze bezoeker? Woord plus teken, zodat kleur nooit de enige aanwijzing is. */
+function Progress({visitor}:{visitor:InterestVisitor}){
+  const[label,tone,Icon]=visitor.placed?['order geplaatst','is-good',CheckCircle2]as const
+    :visitor.submits?['verstuurd, geen order','is-bad',AlertTriangle]as const
+    :visitor.checkouts?['afgehaakt bij afrekenen','is-wait',Clock]as const
+    :['alleen mandje','is-off',ShoppingCart]as const
+  return <span className={`db-status ${tone}`}><Icon/>{label}</span>
+}
+
+function Lines({lines,value}:{lines:InterestLine[]|null;value?:string|null}){
+  if(!lines?.length)return <small className="db-muted">{value&&Number(value)>0?`${euro(value)} · inhoud niet bekend (oudere meting)`:'—'}</small>
+  const total=value&&Number(value)>0?Number(value):lines.reduce((sum,line)=>sum+line.price*line.quantity,0)
+  return <div className="db-order-items">
+    <ul>{lines.map((line,index)=><li key={index}><b>{line.quantity}×</b><span>{line.name}</span><em>{euro(line.price*line.quantity)}</em></li>)}</ul>
+    <small>{euro(total)} incl. btw · {euro(total/1.21)} excl. btw</small>
+  </div>
+}
+
+/** Volledige tijdlijn van één bezoeker, pas opgehaald als je hem openklapt. */
+function VisitorTimeline({sessionId}:{sessionId:string}){
+  const[events,setEvents]=useState<TimelineEvent[]|null>(null)
+  const[failed,setFailed]=useState(false)
+  useEffect(()=>{
+    let live=true
+    fetch(`/api/admin-interest?session=${encodeURIComponent(sessionId)}`,{cache:'no-store'})
+      .then(response=>response.ok?response.json():Promise.reject())
+      .then(result=>{if(live)setEvents(result.events)})
+      .catch(()=>{if(live)setFailed(true)})
+    return()=>{live=false}
+  },[sessionId])
+  if(failed)return <p className="db-empty">De tijdlijn kon niet worden geladen.</p>
+  if(!events)return <p className="db-empty">Tijdlijn laden…</p>
+  return <table className="db-table db-interest db-timeline"><thead><tr><th>Tijd</th><th>Gebeurtenis</th><th>Pagina</th><th>Product of inhoud</th></tr></thead>
+    <tbody>{events.map(event=><tr key={event.id}>
+      <td>{longMoment(event.createdAt)}</td>
+      <td>{eventLabels[event.eventType]??event.eventType}</td>
+      <td>{event.path}{event.referrer&&<small>via {event.referrer}</small>}</td>
+      <td>{event.eventType==='add_to_cart'||event.eventType==='remove_from_cart'?<b>{event.productName??'Onbekend product'}</b>
+        :event.eventType==='order_placed'?<b>Order {event.productName}</b>
+        :event.eventType==='begin_checkout'||event.eventType==='checkout_submit'?<Lines lines={event.cartLines} value={event.cartValue}/>
+        :<small className="db-muted">—</small>}</td>
+    </tr>)}</tbody></table>
+}
+
+function Interesse(){
+  const[data,setData]=useState<InterestData|null>(null)
+  const[failed,setFailed]=useState(false)
+  const[stage,setStage]=useState('alle')
+  const[query,setQuery]=useState('')
+  const[search,setSearch]=useState('')
+  const[page,setPage]=useState(0)
+  const[productQuery,setProductQuery]=useState('')
+  const[open,setOpen]=useState<string|null>(null)
+  const visitorsRef=useRef<HTMLDivElement|null>(null)
+
+  // Zoeken pas na een korte pauze in het typen, zodat niet elke letter een verzoek wordt.
+  useEffect(()=>{const timer=window.setTimeout(()=>{setSearch(query.trim());setPage(0)},350);return()=>window.clearTimeout(timer)},[query])
+
+  const load=useCallback(async()=>{
+    const params=new URLSearchParams({stage,page:String(page)});if(search)params.set('q',search)
+    try{
+      const response=await fetch(`/api/admin-interest?${params}`,{cache:'no-store'})
+      if(!response.ok)throw new Error()
+      setData(await response.json());setFailed(false)
+    }catch{setFailed(true)}
+  },[stage,search,page])
+  useEffect(()=>{void load()},[load])
+  useEffect(()=>{const timer=window.setInterval(()=>{void load()},30_000);return()=>window.clearInterval(timer)},[load])
+
+  const products=useMemo(()=>{
+    const needle=productQuery.trim().toLowerCase()
+    return(data?.products??[]).filter(product=>!needle||product.name.toLowerCase().includes(needle))
+  },[data,productQuery])
+
+  if(!data)return <section className="db-section"><p className="db-empty">{failed?'Het overzicht kon niet worden geladen.':'Overzicht laden…'}</p>{failed&&<button className="db-button ghost" onClick={()=>load()}>Opnieuw proberen</button>}</section>
+  const t=data.totals
+  const pages=Math.max(1,Math.ceil(data.total/data.pageSize))
+  const showVisitorsFor=(name:string)=>{setQuery(name);setStage('alle');setPage(0);visitorsRef.current?.scrollIntoView({behavior:'smooth',block:'start'})}
+
+  return <>
+    <section className="db-section">
+      <h2>Alle mandjes en checkouts</h2>
+      <p className="db-lead">Elk product dat ooit in een mandje is gelegd en elke keer dat iemand naar afrekenen ging{t.since?`, gemeten sinds ${longMoment(t.since)}`:''}. Bezoekers zijn anoniem tot ze een order plaatsen; dan zie je de klantgegevens erbij.</p>
+      <div className="db-grid cols-4">
+        <Tile label="In mandje gelegd" value={count(t.addToCart)} hint={`door ${count(t.cartSessions)} bezoekers`}/>
+        <Tile label="Naar afrekenen" value={count(t.checkoutSessions)} hint={`bezoekers · ${percent(t.checkoutSessions,t.cartSessions)} van de mandjes`}/>
+        <Tile label="Bestelling verstuurd" value={count(t.submitSessions)} hint={`bezoekers · ${percent(t.submitSessions,t.checkoutSessions)} van de afrekenaars`}/>
+        <Tile label="Order geplaatst" value={count(t.orderSessions)} hint={`bezoekers · ${percent(t.orderSessions,t.cartSessions)} van de mandjes`}/>
+      </div>
+    </section>
+
+    <section className="db-section">
+      <div className="db-panel db-scroll">
+        <div className="db-panel-head">
+          <div><h3>Per product</h3><p className="db-note">Hoe vaak een product gewild is, gesorteerd op het aantal bezoekers. Klik op een product om te zien wie het wilde.</p></div>
+          <input className="db-search" type="search" value={productQuery} onChange={event=>setProductQuery(event.target.value)} placeholder="Zoek een product" aria-label="Zoek in producten"/>
+        </div>
+        {products.length
+          ?<table className="db-table db-interest"><thead><tr><th>Product</th><th className="db-num">In mandje</th><th className="db-num">Uit mandje</th><th className="db-num">Naar afrekenen</th><th className="db-num">Verstuurd</th><th className="db-num">Besteld</th><th>Laatst in mandje</th></tr></thead>
+            <tbody>{products.map(product=><tr key={product.name}>
+              <td><button className="db-link" onClick={()=>showVisitorsFor(product.name)}>{product.name}</button></td>
+              <td className="db-num"><b>{count(product.added)}×</b><small>{count(product.visitors)} bezoekers</small></td>
+              <td className="db-num">{count(product.removed)}×</td>
+              <td className="db-num"><b>{count(product.checkoutVisitors)}</b><small>bezoekers</small></td>
+              <td className="db-num">{count(product.submitVisitors)}<small>bezoekers</small></td>
+              <td className="db-num"><b>{count(product.ordered)} st.</b><small>{count(product.orders)} orders</small></td>
+              <td>{longMoment(product.last)}</td>
+            </tr>)}</tbody></table>
+          :<p className="db-empty">{data.products.length?'Geen product gevonden.':'Er is nog niets in een mandje gelegd.'}</p>}
+      </div>
+    </section>
+
+    <section className="db-section" ref={visitorsRef}>
+      <div className="db-panel db-scroll">
+        <div className="db-panel-head">
+          <div><h3>Per bezoeker</h3><p className="db-note">{count(data.total)} bezoekers{search?` met “${search}”`:''}, laatst actief bovenaan. Klap een bezoeker open voor de volledige tijdlijn.</p></div>
+          <input className="db-search" type="search" value={query} onChange={event=>setQuery(event.target.value)} placeholder="Zoek op product" aria-label="Zoek bezoekers op product"/>
+        </div>
+        <div className="db-filters" role="group" aria-label="Filter op hoe ver de bezoeker kwam">
+          {interestStages.map(item=><button key={item.key} className="db-chip" aria-pressed={stage===item.key} onClick={()=>{setStage(item.key);setPage(0);setOpen(null)}}>{item.label}</button>)}
+        </div>
+        {data.visitors.length
+          ?<table className="db-table db-interest"><thead><tr><th>Wie</th><th>Wilde</th><th>Hoe ver</th><th>Laatste checkout</th><th>Actief</th><th/></tr></thead>
+            <tbody>{data.visitors.map(visitor=><Fragment key={visitor.sessionId}>
+              <tr>
+                <td>{visitor.orders.length
+                  ?visitor.orders.map(order=><div key={order.orderNumber} className="db-who">
+                    <b>{order.companyName||`${order.firstName??''} ${order.lastName??''}`.trim()||'Klant'}</b>
+                    <small>{[order.companyName&&`${order.firstName??''} ${order.lastName??''}`.trim(),order.email,order.phone,order.city].filter(Boolean).join(' · ')}</small>
+                    <small>Order {order.orderNumber}{order.total?` · ${euro(order.total)}`:''}{order.status?` · ${order.status}`:''}</small>
+                  </div>)
+                  :<><b>Anonieme bezoeker</b><small>#{visitor.sessionId.slice(0,8)}</small></>}
+                  <small>{[visitor.device,visitor.browser,visitor.os].filter(Boolean).join(' · ')||'Apparaat onbekend'}</small>
+                  <small>{visitor.referrer?`Via ${visitor.referrer}`:'Rechtstreeks'}{visitor.landing?` · binnen op ${visitor.landing}`:''}</small>
+                </td>
+                <td>{visitor.products?.length
+                  ?<ul className="db-wanted">{visitor.products.map(name=><li key={name}>{name}</li>)}</ul>
+                  :<small className="db-muted">Niets in mandje gemeten</small>}
+                  <small>{count(visitor.added)}× erin{visitor.removed?` · ${count(visitor.removed)}× eruit`:''}</small>
+                </td>
+                <td><Progress visitor={visitor}/><small>{visitor.checkouts?`${count(visitor.checkouts)}× naar afrekenen`:''}{visitor.submits?` · ${count(visitor.submits)}× verstuurd`:''}</small></td>
+                <td>{visitor.checkouts||visitor.submits?<Lines lines={visitor.checkoutLines} value={visitor.checkoutValue}/>:<small className="db-muted">Niet afgerekend</small>}</td>
+                <td>{longMoment(visitor.last)}<small>eerste keer {longMoment(visitor.first)}</small></td>
+                <td><button className="db-button ghost" onClick={()=>setOpen(open===visitor.sessionId?null:visitor.sessionId)}>{open===visitor.sessionId?'Minder':'Tijdlijn'}</button></td>
+              </tr>
+              {open===visitor.sessionId&&<tr className="db-price-row"><td colSpan={6}><VisitorTimeline sessionId={visitor.sessionId}/></td></tr>}
+            </Fragment>)}</tbody></table>
+          :<p className="db-empty">Geen bezoekers gevonden met dit filter.</p>}
+        {pages>1&&<div className="db-pager">
+          <button className="db-button ghost" disabled={page===0} onClick={()=>{setPage(page-1);setOpen(null)}}>Vorige</button>
+          <span>Pagina {page+1} van {pages}</span>
+          <button className="db-button ghost" disabled={page+1>=pages} onClick={()=>{setPage(page+1);setOpen(null)}}>Volgende</button>
+        </div>}
       </div>
     </section>
   </>
